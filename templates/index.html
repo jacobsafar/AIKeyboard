@@ -546,6 +546,9 @@
         let pendingRequests = new Set();
         let buttonCooldowns = new Map();
         const BUTTON_COOLDOWN = 50; // 50ms cooldown per button
+        const DEBOUNCE_DELAY = 1500; // 1.5 seconds debounce for button presses
+        let debounceTimer = null;
+        let pendingButtonSequence = [];
 
         // Queue processing system for handling rapid requests
         async function processRequestQueue() {
@@ -640,6 +643,25 @@
             }, 5000);
         }
 
+        function updateCurrentSequenceDisplay() {
+            // Update sequence display with pending buttons
+            const sequenceEl = document.getElementById('sequence');
+            if (pendingButtonSequence.length > 0) {
+                sequenceEl.textContent = 'Sequence: ' + pendingButtonSequence.join(' → ') + ' (typing...)';
+                sequenceEl.style.color = '#6c757d';
+                sequenceEl.style.fontStyle = 'italic';
+            }
+        }
+
+        function clearPendingSequence() {
+            // Clear any pending debounce timer and sequence
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+                debounceTimer = null;
+            }
+            pendingButtonSequence = [];
+        }
+
         function updateUI(state) {
             currentState = state;
             
@@ -730,8 +752,28 @@
             const buttonElement = document.querySelector(`.keyboard-button[onclick*="pressButton(${buttonNum})"]`);
             flashButton(buttonElement);
             
-            // Queue the request immediately - no cooldown for button presses
-            queueRequest('press_button', '/press_button', { button: buttonNum });
+            // Add button to pending sequence for immediate UI feedback
+            pendingButtonSequence.push(buttonNum);
+            
+            // Update UI to show the pending button sequence immediately
+            updateCurrentSequenceDisplay();
+            
+            // Clear any existing debounce timer
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+            
+            // Set new timer to send request after 1.5 seconds of inactivity
+            debounceTimer = setTimeout(() => {
+                // Send all pending buttons at once
+                if (pendingButtonSequence.length > 0) {
+                    queueRequest('press_button', '/press_button', { 
+                        button: buttonNum,
+                        sequence: [...pendingButtonSequence] // Send full sequence for context
+                    });
+                    pendingButtonSequence = []; // Clear pending sequence
+                }
+            }, DEBOUNCE_DELAY);
         }
 
         async function acceptWord(word = null) {
@@ -739,12 +781,19 @@
                 return;
             }
             
+            // Clear any pending button sequence since we're accepting a word
+            clearPendingSequence();
+            
             setButtonCooldown('accept-word');
             queueRequest('accept_word', '/accept_word', { word: word });
         }
 
         async function backspace() {
             console.log('Backspace function called');
+            
+            // Clear any pending button sequence since backspace overrides it
+            clearPendingSequence();
+            
             const buttonElement = document.querySelector('.control-button.backspace');
             if (buttonElement) {
                 flashButton(buttonElement);
@@ -770,6 +819,9 @@
                 return;
             }
             
+            // Clear any pending button sequence
+            clearPendingSequence();
+            
             setButtonCooldown('new-word');
             queueRequest('new_word', '/new_word', {});
         }
@@ -778,6 +830,9 @@
             if (isButtonOnCooldown('add-space')) {
                 return;
             }
+            
+            // Clear any pending button sequence
+            clearPendingSequence();
             
             setButtonCooldown('add-space');
             
@@ -800,6 +855,9 @@
             if (isButtonOnCooldown('clear-all')) {
                 return;
             }
+            
+            // Clear any pending button sequence
+            clearPendingSequence();
             
             setButtonCooldown('clear-all');
             
