@@ -235,19 +235,35 @@ def new_word():
 
 @app.route('/add_space', methods=['POST'])
 def add_space():
-    """Add a space to the typed text"""
+    """Add space - same functionality as accept word"""
     try:
         init_session()
         
-        # Add space to typed text if there's already text
-        if session['typed_text']:
-            session['typed_text'] += " "
+        # If there's a current prediction, accept it
+        if session['top_predictions']:
+            word = session['top_predictions'][0]
+            
+            # Add word to typed text
+            if session['typed_text']:
+                session['typed_text'] += " " + word
+            else:
+                session['typed_text'] = word
+            
+            # Reset for next word
+            session['button_sequence'] = []
+            session['top_predictions'] = []
+            session['predicted_words'] = []
+            session['word_count'] += 1
+        else:
+            # If no prediction, just add space
+            if session['typed_text']:
+                session['typed_text'] += ' '
         
-        # Clear current word predictions
-        session['button_sequence'] = []
-        session['top_predictions'] = []
-        session['predicted_words'] = []
-        session['next_word_predictions'] = []
+        # Generate next word predictions based on updated text
+        next_words = []
+        if session['typed_text'].strip():
+            next_words = predictor.predict_next_words(session['typed_text'], "")
+        session['next_word_predictions'] = next_words
         
         # Calculate performance metrics
         elapsed_time = time.time() - session['start_time']
