@@ -123,12 +123,12 @@
         
         .keyboard {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr;
-            gap: 30px;
+            grid-template-columns: 120px 120px 120px;
+            grid-template-rows: 120px 120px 120px;
+            gap: 5px;
             margin-bottom: 30px;
-            max-width: 400px;
-            max-height: 400px;
+            max-width: 365px;
+            max-height: 365px;
             margin-left: auto;
             margin-right: auto;
             position: relative;
@@ -138,66 +138,66 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 20px;
-            font-size: 12px;
+            padding: 15px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
-            border-radius: 15px;
+            border-radius: 60px;
         }
         
         .keyboard-button.up {
             grid-column: 2;
             grid-row: 1;
-            clip-path: polygon(20% 20%, 80% 20%, 50% 80%);
+            border-radius: 60px 60px 10px 10px;
         }
         
         .keyboard-button.down {
             grid-column: 2;
             grid-row: 3;
-            clip-path: polygon(50% 20%, 20% 80%, 80% 80%);
+            border-radius: 10px 10px 60px 60px;
         }
         
         .keyboard-button.left {
             grid-column: 1;
             grid-row: 2;
-            clip-path: polygon(80% 50%, 20% 20%, 20% 80%);
+            border-radius: 60px 10px 10px 60px;
         }
         
         .keyboard-button.right {
             grid-column: 3;
             grid-row: 2;
-            clip-path: polygon(20% 50%, 80% 20%, 80% 80%);
+            border-radius: 10px 60px 60px 10px;
         }
         
         .keyboard-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.6);
-            filter: brightness(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+            filter: brightness(1.15);
         }
         
         .keyboard-button:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+            transform: scale(0.98);
+            box-shadow: 0 3px 15px rgba(102, 126, 234, 0.3);
         }
         
         .button-number {
-            font-size: 24px;
-            margin-bottom: 5px;
+            font-size: 20px;
+            margin-bottom: 3px;
         }
         
         .button-letters {
-            font-size: 10px;
+            font-size: 9px;
             opacity: 0.9;
-            margin-top: 5px;
-            line-height: 1.2;
+            margin-top: 3px;
+            line-height: 1.1;
             text-align: center;
         }
         
