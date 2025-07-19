@@ -100,14 +100,23 @@ def accept_word():
             session['button_sequence'] = []
             session['top_predictions'] = []
             session['predicted_words'] = []
-            session['next_word_predictions'] = []
             session['word_count'] += 1
+            
+            # Generate next word predictions based on new text
+            next_words = []
+            if session['typed_text'].strip():
+                next_words = predictor.predict_next_words(session['typed_text'], "")
+            session['next_word_predictions'] = next_words
         
         # Calculate performance metrics
         elapsed_time = time.time() - session['start_time']
         wpm = (session['word_count'] / (elapsed_time / 60)) if elapsed_time > 0 else 0
         
         return jsonify({
+            'top_predictions': session['top_predictions'],
+            'alternative_words': session['predicted_words'],
+            'next_word_predictions': session['next_word_predictions'],
+            'button_sequence': session['button_sequence'],
             'typed_text': session['typed_text'],
             'word_count': session['word_count'],
             'elapsed_time': round(elapsed_time, 1),
