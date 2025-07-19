@@ -151,7 +151,7 @@
         
         .controls {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -195,6 +195,14 @@
         
         .control-button.clear:hover {
             background: #c82333;
+        }
+        
+        .control-button.space {
+            background: #17a2b8;
+        }
+        
+        .control-button.space:hover {
+            background: #138496;
         }
         
         .metrics {
@@ -357,6 +365,7 @@
         <div class="controls">
             <button class="control-button accept" onclick="acceptWord()">✅ Accept Word</button>
             <button class="control-button backspace" onclick="backspace()">⬅️ Backspace</button>
+            <button class="control-button space" onclick="addSpace()">⎵ Space</button>
             <button class="control-button" onclick="newWord()">🔄 New Word</button>
             <button class="control-button clear" onclick="clearAll()">🗑️ Clear All</button>
         </div>
@@ -550,6 +559,15 @@
             }
         }
 
+        async function addSpace() {
+            try {
+                const result = await makeRequest('/add_space');
+                updateUI(result);
+            } catch (error) {
+                console.error('Error adding space:', error);
+            }
+        }
+
         async function clearAll() {
             try {
                 const result = await makeRequest('/clear_all');
@@ -593,6 +611,10 @@
                     break;
                 case 'Escape':
                     newWord();
+                    break;
+                case ' ':
+                    event.preventDefault();
+                    addSpace();
                     break;
             }
         });

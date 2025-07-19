@@ -172,6 +172,38 @@ def new_word():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/add_space', methods=['POST'])
+def add_space():
+    """Add a space to the typed text"""
+    try:
+        # Add space to typed text if there's already text
+        if session['typed_text']:
+            session['typed_text'] += " "
+        
+        # Clear current word predictions
+        session['button_sequence'] = []
+        session['current_word'] = ""
+        session['predicted_words'] = []
+        session['next_word_predictions'] = []
+        
+        # Calculate performance metrics
+        elapsed_time = time.time() - session['start_time']
+        wpm = (session['word_count'] / (elapsed_time / 60)) if elapsed_time > 0 else 0
+        
+        return jsonify({
+            'current_word': session['current_word'],
+            'alternative_words': session['predicted_words'],
+            'next_word_predictions': session['next_word_predictions'],
+            'button_sequence': session['button_sequence'],
+            'typed_text': session['typed_text'],
+            'word_count': session['word_count'],
+            'elapsed_time': round(elapsed_time, 1),
+            'wpm': round(wpm, 1)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/clear_all', methods=['POST'])
 def clear_all():
     """Clear everything and start over"""
