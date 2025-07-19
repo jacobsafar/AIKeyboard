@@ -241,35 +241,112 @@ class KeyboardPredictor:
         
         return True
     
+    def _get_fallback_table(self):
+        """
+        Generate fallback table with correct frequency-based letter mapping
+        """
+        if hasattr(self, '_fallback_table'):
+            return self._fallback_table
+            
+        # Build a comprehensive word list with correct button sequences
+        words_with_sequences = [
+            # Length 1
+            ("A", [1]), ("I", [1]), ("E", [1]), ("T", [1]), ("O", [1]), ("N", [1]), ("H", [1]),
+            ("S", [2]), ("R", [2]), ("D", [2]), ("L", [2]), ("C", [2]), ("U", [2]), ("G", [2]),
+            ("M", [3]), ("P", [3]), ("F", [3]), ("Y", [3]), ("W", [3]), ("B", [3]),
+            ("V", [4]), ("K", [4]), ("X", [4]), ("Q", [4]), ("J", [4]), ("Z", [4]),
+            
+            # Length 2
+            ("TO", [1, 1]), ("IT", [1, 1]), ("IN", [1, 1]), ("AT", [1, 1]), ("HE", [1, 1]), ("AN", [1, 1]), ("ON", [1, 1]),
+            ("IS", [1, 2]), ("AS", [1, 2]), ("OR", [1, 2]), ("HI", [1, 1]), ("NO", [1, 1]), ("OH", [1, 1]),
+            ("GO", [2, 1]), ("SO", [2, 1]), ("DO", [2, 1]), ("UP", [2, 3]), ("MY", [3, 3]), ("BY", [3, 3]),
+            ("WE", [3, 1]), ("ME", [3, 1]), ("BE", [3, 1]),
+            
+            # Length 3  
+            ("THE", [1, 1, 1]), ("AND", [1, 1, 2]), ("YOU", [3, 1, 2]), ("NOT", [1, 1, 1]), ("CAN", [2, 1, 1]),
+            ("HAD", [1, 1, 2]), ("HER", [1, 1, 2]), ("HAS", [1, 1, 2]), ("HIS", [1, 1, 2]), ("ONE", [1, 1, 1]),
+            ("OUT", [1, 2, 1]), ("SHE", [2, 1, 1]), ("HOW", [1, 1, 3]), ("ARE", [1, 2, 1]), ("GET", [2, 1, 1]),
+            ("ALL", [1, 2, 2]), ("NEW", [1, 1, 3]), ("SEE", [2, 1, 1]), ("TWO", [1, 3, 1]), ("WHO", [3, 1, 1]),
+            ("OIL", [1, 1, 2]), ("USE", [2, 2, 1]), ("MAN", [3, 1, 1]), ("DAY", [2, 1, 3]), ("WAY", [3, 1, 3]),
+            ("MAY", [3, 1, 3]), ("OLD", [1, 2, 2]), ("GOT", [2, 1, 1]), ("BAD", [3, 1, 2]), ("BIG", [3, 1, 2]),
+            ("BOY", [3, 1, 3]), ("PUT", [3, 2, 1]), ("END", [1, 1, 2]), ("TRY", [1, 2, 3]), ("LET", [2, 1, 1]),
+            
+            # Length 4
+            ("THAT", [1, 1, 1, 1]), ("THIS", [1, 1, 1, 2]), ("HAVE", [1, 1, 4, 1]), ("THEY", [1, 1, 1, 3]),
+            ("THEN", [1, 1, 1, 1]), ("THEM", [1, 1, 1, 3]), ("THAN", [1, 1, 1, 1]), ("HEAR", [1, 1, 1, 2]),
+            ("HERE", [1, 1, 2, 1]), ("HELP", [1, 1, 2, 3]), ("HATE", [1, 1, 1, 1]), ("HINT", [1, 1, 1, 1]),
+            ("TONE", [1, 1, 1, 1]), ("NONE", [1, 1, 1, 1]), ("NOTE", [1, 1, 1, 1]), ("NEED", [1, 1, 1, 2]),
+            ("NEAT", [1, 1, 1, 1]), ("NEAR", [1, 1, 1, 2]), ("NAME", [1, 1, 3, 1]), ("GAME", [2, 1, 3, 1]),
+            ("CAME", [2, 1, 3, 1]), ("SAME", [2, 1, 3, 1]), ("TIME", [1, 1, 3, 1]), ("MADE", [3, 1, 2, 1]),
+            ("TAKE", [1, 1, 4, 1]), ("MAKE", [3, 1, 4, 1]), ("LIFE", [2, 1, 3, 1]), ("HOME", [1, 1, 3, 1]),
+            ("COME", [2, 1, 3, 1]), ("SOME", [2, 1, 3, 1]), ("GOOD", [2, 1, 1, 2]), ("COOL", [2, 1, 1, 2]),
+            ("POOL", [3, 1, 1, 2]),
+            
+            # Length 5
+            ("HELLO", [1, 1, 2, 2, 1]), ("THERE", [1, 1, 1, 2, 1]), ("THESE", [1, 1, 1, 2, 1]),
+            ("THREE", [1, 1, 2, 1, 1]), ("THOSE", [1, 1, 1, 2, 1]), ("THANK", [1, 1, 1, 1, 4]),
+            ("NIGHT", [1, 1, 2, 1, 1]), ("OTHER", [1, 1, 1, 1, 2]), ("HANDS", [1, 1, 1, 2, 2]),
+            ("HOUSE", [1, 1, 2, 2, 1]), ("EARTH", [1, 1, 2, 1, 1]), ("HEART", [1, 1, 1, 2, 1]),
+            ("ENTER", [1, 1, 1, 1, 2]), ("EATEN", [1, 1, 1, 1, 1]), ("TEETH", [1, 1, 1, 1, 1]),
+            ("WHERE", [3, 1, 1, 2, 1]), ("WATER", [3, 1, 1, 1, 2]), ("WATCH", [3, 1, 1, 2, 1]),
+            ("SWEET", [2, 3, 1, 1, 1]), ("GREAT", [2, 2, 1, 1, 1]), ("GREEN", [2, 2, 1, 1, 1]),
+            ("WOULD", [3, 1, 2, 2, 2]), ("WORLD", [3, 1, 2, 2, 2]), ("WRITE", [3, 2, 1, 1, 1]),
+            ("WHITE", [3, 1, 1, 1, 1]), ("WHILE", [3, 1, 1, 2, 1]), ("WOMAN", [3, 1, 3, 1, 1]),
+            ("MONEY", [3, 1, 1, 1, 3]), ("MONTH", [3, 1, 1, 1, 1]), ("MIGHT", [3, 1, 2, 1, 1]),
+            ("MUSIC", [3, 2, 2, 1, 2]), ("PLACE", [3, 2, 1, 2, 1]), ("POWER", [3, 1, 3, 1, 2]),
+            ("POINT", [3, 1, 1, 1, 1]), ("PHONE", [3, 1, 1, 1, 1]), ("YOUNG", [3, 1, 2, 1, 2]),
+            ("STORY", [2, 1, 1, 2, 3]), ("START", [2, 1, 1, 2, 1]), ("STUDY", [2, 1, 2, 2, 3]),
+            ("SMALL", [2, 3, 1, 2, 2]), ("SPEAK", [2, 3, 1, 1, 4]), ("SOUND", [2, 1, 2, 1, 2]),
+            ("COULD", [2, 1, 2, 2, 2]), ("CLEAN", [2, 2, 1, 1, 1]), ("CLEAR", [2, 2, 1, 1, 2]),
+            ("CLASS", [2, 2, 1, 2, 2]), ("CLOSE", [2, 2, 1, 2, 1]), ("COLOR", [2, 1, 2, 1, 2]),
+            ("COOLER", [2, 1, 1, 2, 1, 2]), ("COOLEST", [2, 1, 1, 2, 1, 2, 1]), ("COOLLY", [2, 1, 1, 2, 2, 3]),
+            
+            # Length 6
+            ("PEOPLE", [3, 1, 1, 3, 2, 1]), ("PERSON", [3, 1, 2, 2, 1, 1]), ("PRETTY", [3, 2, 1, 1, 1, 3]),
+            ("PLEASE", [3, 2, 1, 1, 2, 1]), ("FRIEND", [3, 2, 1, 1, 1, 2]), ("FATHER", [3, 1, 1, 1, 1, 2]),
+            ("MOTHER", [3, 1, 1, 1, 1, 2]), ("BROTHER", [3, 2, 1, 1, 1, 1, 2]), ("SISTER", [2, 1, 2, 1, 1, 2]),
+            ("SECOND", [2, 1, 2, 1, 1, 2]), ("SCHOOL", [2, 2, 1, 1, 1, 2]), ("SUMMER", [2, 2, 3, 3, 1, 2]),
+            ("SIMPLE", [2, 1, 3, 3, 2, 1]), ("STREET", [2, 1, 2, 1, 1, 1]), ("STRONG", [2, 1, 2, 1, 1, 2]),
+            ("CHANGE", [2, 1, 1, 1, 2, 1]), ("CHANCE", [2, 1, 1, 1, 2, 1]), ("CHOOSE", [2, 1, 1, 1, 2, 1]),
+            ("CORNER", [2, 1, 2, 1, 1, 2]), ("COUPLE", [2, 1, 2, 3, 2, 1]), ("COURSE", [2, 1, 2, 2, 2, 1]),
+            ("LOVELY", [2, 1, 4, 1, 2, 3]), ("LETTER", [2, 1, 1, 1, 1, 2]), ("LISTEN", [2, 1, 2, 1, 1, 1]),
+            ("LITTLE", [2, 1, 1, 1, 2, 1]), ("MOMENT", [3, 1, 3, 1, 1, 1]), ("MEMORY", [3, 1, 3, 1, 2, 3]),
+            ("MASTER", [3, 1, 2, 1, 1, 2]), ("MATTER", [3, 1, 1, 1, 1, 2]), ("MARKET", [3, 1, 2, 4, 1, 1]),
+            ("ANIMAL", [1, 1, 1, 3, 1, 2]), ("AROUND", [1, 2, 1, 2, 1, 2]), ("ALWAYS", [1, 2, 3, 1, 3, 2]),
+            ("HAPPEN", [1, 1, 3, 3, 1, 1]), ("NATURE", [1, 1, 1, 2, 2, 1]), ("TRAVEL", [1, 2, 1, 4, 1, 2])
+        ]
+        
+        # Organize by length
+        self._fallback_table = {}
+        for word, sequence in words_with_sequences:
+            length = len(sequence)
+            if length not in self._fallback_table:
+                self._fallback_table[length] = []
+            self._fallback_table[length].append((word, sequence))
+        
+        return self._fallback_table
+    
     def _fallback_prediction(self, button_sequence):
         """
-        Simple fallback prediction when API fails
+        Fallback prediction using the rebuilt frequency-based word table
         """
-        # Common word patterns for frequency-based grouping (ETAOINH, SRDLCUG, MPFYWB, VKXQJZ)
-        common_words = {
-            1: {"A": 1, "I": 1, "E": 1, "T": 1, "O": 1, "N": 1, "H": 1},
-            2: {"TO": [1, 1], "IT": [1, 1], "IN": [1, 1], "IS": [1, 2], "AS": [1, 2], "AT": [1, 1], "HE": [1, 1], "AN": [1, 1], "OR": [1, 2], "ON": [1, 1]},
-            3: {"THE": [1, 1, 1], "AND": [1, 1, 2], "YOU": [3, 1, 2], "NOT": [1, 1, 1], "CAN": [2, 1, 1], "HAD": [1, 1, 2], "HER": [1, 1, 2], "HAS": [1, 1, 2], "HIS": [1, 1, 2], "ONE": [1, 1, 1], "OUT": [1, 2, 1], "SHE": [2, 1, 1], "HOW": [1, 1, 3], "ARE": [1, 2, 1]},
-            4: {"THAT": [1, 1, 1, 1], "THIS": [1, 1, 1, 2], "HAVE": [1, 1, 4, 1], "THEY": [1, 1, 1, 3], "THEN": [1, 1, 1, 1], "THEM": [1, 1, 1, 3], "THAN": [1, 1, 1, 1], "HEAR": [1, 1, 1, 2], "HERE": [1, 1, 2, 1], "HELP": [1, 1, 2, 3], "HATE": [1, 1, 1, 1], "HINT": [1, 1, 1, 1], "TONE": [1, 1, 1, 1], "NONE": [1, 1, 1, 1], "NOTE": [1, 1, 1, 1], "NEED": [1, 1, 1, 2], "NEAT": [1, 1, 1, 1]},
-            5: {"HELLO": [1, 1, 2, 2, 1], "THERE": [1, 1, 1, 2, 1], "THESE": [1, 1, 1, 2, 1], "THREE": [1, 1, 2, 1, 1], "THOSE": [1, 1, 1, 2, 1], "THANK": [1, 1, 1, 1, 4], "NIGHT": [1, 1, 2, 1, 1], "OTHER": [1, 1, 1, 1, 2], "HANDS": [1, 1, 1, 2, 2], "HOUSE": [1, 1, 2, 2, 1], "EARTH": [1, 1, 2, 1, 1], "HEART": [1, 1, 1, 2, 1], "ENTER": [1, 1, 1, 1, 2], "EATEN": [1, 1, 1, 1, 1], "TEETH": [1, 1, 1, 1, 1]}
-        }
-        
-        # Find matching words for this sequence
+        fallback_table = self._get_fallback_table()
         sequence_length = len(button_sequence)
-        if sequence_length in common_words:
-            matches = []
-            for word, word_sequence in common_words[sequence_length].items():
-                if isinstance(word_sequence, list) and word_sequence == button_sequence:
-                    matches.append(word)
-                elif isinstance(word_sequence, int) and len(button_sequence) == 1 and word_sequence == button_sequence[0]:
-                    matches.append(word)
-            
-            if matches:
-                return {
-                    "top_predictions": matches[:3],  # First 3 as top predictions
-                    "alternative_words": matches[3:8],  # Next 5 as alternatives
-                    "confidence": 0.6
-                }
         
-        # If no matches found, return empty
+        if sequence_length not in fallback_table:
+            return {"top_predictions": [], "alternative_words": []}
+        
+        # Find words that match the button sequence
+        matches = []
+        for word, word_sequence in fallback_table[sequence_length]:
+            if word_sequence == button_sequence:
+                matches.append(word)
+        
+        if matches:
+            return {
+                "top_predictions": matches[:3],  # First 3 as top predictions
+                "alternative_words": matches[3:8],  # Next 5 as alternatives  
+                "confidence": 0.7
+            }
+        
         return {"top_predictions": [], "alternative_words": []}
