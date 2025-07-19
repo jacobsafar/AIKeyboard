@@ -474,6 +474,7 @@
         <div class="controls">
             <button class="control-button accept" onclick="acceptWord()">✅ Accept Word</button>
             <button class="control-button backspace" onclick="backspace()">⬅️ Backspace</button>
+            <button class="control-button backspace" onclick="backspace()" title="Delete functionality">🗑️ Delete</button>
             <button class="control-button space" onclick="addSpace()">⎵ Space</button>
             <button class="control-button" onclick="newWord()">🔄 New Word</button>
             <button class="control-button clear" onclick="clearAll()">🗑️ Clear All</button>
@@ -831,6 +832,14 @@
             // Handle Delete key by multiple detection methods (keyCode 46)
             if (event.keyCode === 46 || event.code === 'Delete' || event.key === 'Delete' || event.key === 'Del') {
                 console.log('Delete key detected by keyCode/code/key:', event.keyCode, event.code, event.key);
+                event.preventDefault();
+                backspace();
+                return;
+            }
+            
+            // Additional detection for different Delete key variations
+            if (event.key.toLowerCase().includes('delete') || event.code.toLowerCase().includes('delete')) {
+                console.log('Delete key detected by string match:', event.key, event.code);
                 event.preventDefault();
                 backspace();
                 return;
