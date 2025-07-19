@@ -745,6 +745,10 @@
 
         async function backspace() {
             console.log('Backspace function called');
+            
+            // Add debug info about current state
+            console.log('Current button sequence length before backspace:', pendingSequence.length);
+            
             const buttonElement = document.querySelector('.control-button.backspace');
             if (buttonElement) {
                 flashButton(buttonElement);
@@ -757,6 +761,7 @@
                 console.log('Making backspace request...');
                 const result = await makeRequest('/backspace', {});
                 console.log('Backspace result:', result);
+                console.log('Button sequence after backspace:', result.button_sequence);
                 updateUI(result);
                 console.log('UI updated after backspace');
             } catch (error) {
