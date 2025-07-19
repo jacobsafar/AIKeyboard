@@ -546,9 +546,6 @@
         let pendingRequests = new Set();
         let buttonCooldowns = new Map();
         const BUTTON_COOLDOWN = 50; // 50ms cooldown per button
-        const DEBOUNCE_DELAY = 1500; // 1.5 seconds debounce for button presses
-        let debounceTimer = null;
-        let pendingButtonSequence = [];
 
         // Queue processing system for handling rapid requests
         async function processRequestQueue() {
@@ -643,28 +640,6 @@
             }, 5000);
         }
 
-        function updateCurrentSequenceDisplay() {
-            // Update sequence display with pending buttons
-            const sequenceEl = document.getElementById('sequence');
-            if (pendingButtonSequence.length > 0) {
-                sequenceEl.textContent = 'Sequence: ' + pendingButtonSequence.join(' → ') + ' (typing...)';
-                sequenceEl.style.color = '#6c757d';
-                sequenceEl.style.fontStyle = 'italic';
-            } else {
-                sequenceEl.textContent = '';
-                sequenceEl.style.fontStyle = 'normal';
-            }
-        }
-
-        function clearPendingSequence() {
-            // Clear any pending debounce timer and sequence
-            if (debounceTimer) {
-                clearTimeout(debounceTimer);
-                debounceTimer = null;
-            }
-            pendingButtonSequence = [];
-        }
-
         function updateUI(state) {
             currentState = state;
             
@@ -751,45 +726,12 @@
         }
 
         async function pressButton(buttonNum) {
-            console.log(`Button ${buttonNum} pressed, pending sequence:`, pendingButtonSequence);
-            
             // Find button element for visual feedback
             const buttonElement = document.querySelector(`.keyboard-button[onclick*="pressButton(${buttonNum})"]`);
             flashButton(buttonElement);
             
-            // Add button to pending sequence for immediate UI feedback
-            pendingButtonSequence.push(buttonNum);
-            console.log(`Updated pending sequence:`, pendingButtonSequence);
-            
-            // Update UI to show the pending button sequence immediately
-            updateCurrentSequenceDisplay();
-            
-            // Clear any existing debounce timer
-            if (debounceTimer) {
-                clearTimeout(debounceTimer);
-                console.log('Cleared existing debounce timer');
-            }
-            
-            // Set new timer to send request after 1.5 seconds of inactivity
-            debounceTimer = setTimeout(async () => {
-                console.log('Debounce timer fired, sending request for sequence:', pendingButtonSequence);
-                // Only send request if we have at least 2 buttons to avoid single letter predictions
-                if (pendingButtonSequence.length >= 2) {
-                    try {
-                        const result = await makeRequest('/press_button', { button: buttonNum });
-                        updateUI(result);
-                        pendingButtonSequence = []; // Clear pending sequence after successful request
-                        updateCurrentSequenceDisplay();
-                    } catch (error) {
-                        console.error('Error in debounced request:', error);
-                        showError(`Error: ${error.message}`);
-                    }
-                } else if (pendingButtonSequence.length === 1) {
-                    // For single button, just update the display but don't make prediction
-                    console.log('Single button pressed, waiting for more input...');
-                    updateCurrentSequenceDisplay();
-                }
-            }, DEBOUNCE_DELAY);
+            // Queue the request immediately - no cooldown for button presses
+            queueRequest('press_button', '/press_button', { button: buttonNum });
         }
 
         async function acceptWord(word = null) {
@@ -797,63 +739,18 @@
                 return;
             }
             
-            // If there's a pending sequence with 2+ buttons, send it first to get predictions
-            if (pendingButtonSequence.length >= 2) {
-                try {
-                    // Send the button sequence to get the current predictions first
-                    const result = await makeRequest('/press_button', { button: pendingButtonSequence[pendingButtonSequence.length - 1] });
-                    updateUI(result);
-                    pendingButtonSequence = [];
-                    updateCurrentSequenceDisplay();
-                    
-                    // Now accept the word
-                    setButtonCooldown('accept-word');
-                    queueRequest('accept_word', '/accept_word', { word: word });
-                } catch (error) {
-                    console.error('Error getting predictions before accepting:', error);
-                    showError(`Error: ${error.message}`);
-                }
-            } else {
-                // Clear any pending button sequence since we're accepting a word
-                clearPendingSequence();
-                
-                setButtonCooldown('accept-word');
-                queueRequest('accept_word', '/accept_word', { word: word });
-            }
+            setButtonCooldown('accept-word');
+            queueRequest('accept_word', '/accept_word', { word: word });
         }
 
         async function backspace() {
-            console.log('Backspace function called, pending sequence:', pendingButtonSequence);
-            
+            console.log('Backspace function called');
             const buttonElement = document.querySelector('.control-button.backspace');
             if (buttonElement) {
                 flashButton(buttonElement);
             } else {
                 console.error('Backspace button element not found');
             }
-            
-            // Handle pending sequence locally first for immediate feedback
-            if (pendingButtonSequence.length > 0) {
-                console.log('Removing button from pending sequence');
-                // Remove last button from pending sequence
-                pendingButtonSequence.pop();
-                console.log('New pending sequence:', pendingButtonSequence);
-                updateCurrentSequenceDisplay();
-                
-                // If sequence is now empty, clear the timer
-                if (pendingButtonSequence.length === 0) {
-                    console.log('Pending sequence empty, clearing timer');
-                    clearPendingSequence();
-                    // Clear the sequence display
-                    const sequenceEl = document.getElementById('sequence');
-                    sequenceEl.textContent = '';
-                }
-                return; // Don't make API call if we're just removing pending buttons
-            }
-            
-            // Clear any remaining pending sequence and make API call for server state
-            console.log('No pending buttons, making server backspace request');
-            clearPendingSequence();
             
             // Make backspace instant - bypass queue and cooldown
             try {
@@ -873,9 +770,6 @@
                 return;
             }
             
-            // Clear any pending button sequence
-            clearPendingSequence();
-            
             setButtonCooldown('new-word');
             queueRequest('new_word', '/new_word', {});
         }
@@ -885,35 +779,12 @@
                 return;
             }
             
-            // If there's a pending sequence with 2+ buttons, send it first to get predictions
-            if (pendingButtonSequence.length >= 2) {
-                try {
-                    // Send the button sequence to get the current predictions first
-                    const result = await makeRequest('/press_button', { button: pendingButtonSequence[pendingButtonSequence.length - 1] });
-                    updateUI(result);
-                    pendingButtonSequence = [];
-                    updateCurrentSequenceDisplay();
-                    
-                    // Now add space (which accepts current word and adds space)
-                    setButtonCooldown('add-space');
-                    const buttonElement = document.querySelector('.control-button.space');
-                    flashButton(buttonElement);
-                    queueRequest('add_space', '/add_space', {});
-                } catch (error) {
-                    console.error('Error getting predictions before adding space:', error);
-                    showError(`Error: ${error.message}`);
-                }
-            } else {
-                // Clear any pending button sequence
-                clearPendingSequence();
-                
-                setButtonCooldown('add-space');
-                
-                const buttonElement = document.querySelector('.control-button.space');
-                flashButton(buttonElement);
-                
-                queueRequest('add_space', '/add_space', {});
-            }
+            setButtonCooldown('add-space');
+            
+            const buttonElement = document.querySelector('.control-button.space');
+            flashButton(buttonElement);
+            
+            queueRequest('add_space', '/add_space', {});
         }
 
         async function addNextWord(word) {
@@ -929,9 +800,6 @@
             if (isButtonOnCooldown('clear-all')) {
                 return;
             }
-            
-            // Clear any pending button sequence
-            clearPendingSequence();
             
             setButtonCooldown('clear-all');
             
@@ -988,7 +856,6 @@
                     acceptWord();
                     break;
                 case 'Backspace':
-                case 'Delete':
                     event.preventDefault();
                     backspace();
                     break;
