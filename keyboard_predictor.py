@@ -133,7 +133,7 @@ class KeyboardPredictor:
                     print(f"Validation failed for alternative '{word}' with sequence {button_sequence}")
             
             # Get name candidates that match the sequence
-            name_candidates = get_names_for_sequence(button_sequence, self.groups)
+            name_candidates = [n.upper() for n in get_names_for_sequence(button_sequence, self.groups)]
             print(f"Name candidates for sequence {button_sequence}: {name_candidates[:5]}")
             
             # Combine validated predictions with name candidates
