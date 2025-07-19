@@ -123,11 +123,12 @@
         
         .keyboard {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: 1fr 1fr 1fr 40px 1fr 1fr 1fr;
             gap: 15px;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 30px auto;
             padding: 20px;
+            justify-items: center;
         }
         
         .keyboard-button {
@@ -140,8 +141,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 30px 15px;
+            padding: 30px 25px;
             min-height: 120px;
+            min-width: 140px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
@@ -437,6 +439,7 @@
                     <div class="button-key">F</div>
                 </div>
             </button>
+            <div></div>
             <button class="keyboard-button btn4" onclick="pressButton(4)" title="J Key - Button 4">
                 <div class="button-content">
                     <div class="button-number">4</div>
