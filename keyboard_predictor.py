@@ -23,17 +23,24 @@ class KeyboardPredictor:
             4: "TUVWXYZ"
         }
     
-    def predict_word(self, button_sequence):
+    def predict_word(self, button_sequence, context_text=""):
         """
-        Predict word based on button sequence using OpenAI API
+        Predict word based on button sequence and context using OpenAI API
         """
         if not button_sequence:
-            return {"current_word": "", "alternative_words": []}
+            return {"top_predictions": [], "alternative_words": []}
         
         # Convert button sequence to possible letter combinations
         sequence_str = " → ".join([str(x) for x in button_sequence])
         
-        # Create the prompt for OpenAI
+        # Create context-aware prompt for OpenAI
+        context_part = ""
+        if context_text.strip():
+            context_part = f"""
+        CONTEXT: The user has already typed: "{context_text.strip()}"
+        Consider this context when predicting the next word to ensure grammatical correctness and natural flow.
+        """
+        
         prompt = f"""
         I have a 4-button keyboard where each button represents a group of letters:
         - Button 1: A, B, C, D, E, F, G
@@ -42,16 +49,18 @@ class KeyboardPredictor:
         - Button 4: T, U, V, W, X, Y, Z
         
         The user pressed buttons in this sequence: {sequence_str}
+        {context_part}
         
-        Based on this sequence, predict the 3 most likely English words the user is trying to type.
+        Based on this sequence and context, predict the 3 most likely English words the user is trying to type.
         List them in order of probability (most likely first).
         Also provide up to 5 additional alternative words that could match this sequence.
         
         Consider:
         - Common English words
         - Letter frequency and common patterns
-        - Context and word probability
+        - Context and grammatical flow (if context provided)
         - Word usage frequency in English
+        - Sentence structure and natural language patterns
         
         Respond with JSON in this format:
         {{
@@ -61,7 +70,7 @@ class KeyboardPredictor:
         }}
         
         Only include real English words. Make sure all words actually match the button sequence.
-        Prioritize common, frequently used words in the top_predictions.
+        Prioritize words that fit naturally with the given context.
         """
         
         try:

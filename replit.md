@@ -84,5 +84,8 @@ The application is designed for simple deployment:
 - **Keyboard Shortcuts**: Added support for number keys (1-4), Enter, Backspace, and Escape
 - **API Architecture**: Restructured as RESTful API with clear endpoint separation
 - **Session Management**: Migrated from Streamlit session state to Flask sessions
+- **Multiple Predictions**: Enhanced AI to show 3 top word predictions instead of 1
+- **Context-Aware Predictions**: Updated AI to consider previously typed text for better word suggestions
+- **Interactive UI**: Made predictions clickable with color-coded options and hover effects
 
 The system prioritizes simplicity and real-time interaction over complex data persistence or multi-user management, making it suitable for single-user or demonstration environments.

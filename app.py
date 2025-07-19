@@ -47,8 +47,8 @@ def press_button():
         # Add button to sequence
         session['button_sequence'].append(button_num)
         
-        # Get prediction from AI
-        result = predictor.predict_word(session['button_sequence'])
+        # Get prediction from AI with context
+        result = predictor.predict_word(session['button_sequence'], session['typed_text'])
         session['top_predictions'] = result.get('top_predictions', [])
         session['predicted_words'] = result.get('alternative_words', [])
         
@@ -130,8 +130,8 @@ def backspace():
             session['button_sequence'].pop()
             
             if session['button_sequence']:
-                # Re-predict with remaining sequence
-                result = predictor.predict_word(session['button_sequence'])
+                # Re-predict with remaining sequence and context
+                result = predictor.predict_word(session['button_sequence'], session['typed_text'])
                 session['top_predictions'] = result.get('top_predictions', [])
                 session['predicted_words'] = result.get('alternative_words', [])
             else:
