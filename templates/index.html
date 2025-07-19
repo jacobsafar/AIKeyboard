@@ -54,11 +54,19 @@
         }
         
         .current-word {
-            font-size: 36px;
+            font-size: 18px;
             font-weight: bold;
-            color: #ff6b6b;
             margin: 10px 0;
-            min-height: 50px;
+            min-height: 120px;
+        }
+        
+        .prediction-option {
+            transition: all 0.3s ease;
+        }
+        
+        .prediction-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         
         .sequence {
@@ -419,7 +427,7 @@
 
     <script>
         let currentState = {
-            current_word: '',
+            top_predictions: [],
             alternative_words: [],
             next_word_predictions: [],
             button_sequence: [],
@@ -441,9 +449,19 @@
         function updateUI(state) {
             currentState = state;
             
-            // Update current word
+            // Update top predictions
             const currentWordEl = document.getElementById('current-word');
-            currentWordEl.textContent = state.current_word || 'Start typing...';
+            if (state.top_predictions && state.top_predictions.length > 0) {
+                // Show all 3 predictions
+                const predictionsHtml = state.top_predictions.map((word, index) => 
+                    `<div class="prediction-option" onclick="acceptWord('${word}')" style="cursor: pointer; margin: 5px 0; padding: 10px; background: ${index === 0 ? '#ff6b6b' : '#ffa726'}; color: white; border-radius: 8px; text-align: center;">
+                        <strong>${index + 1}. ${word}</strong>
+                    </div>`
+                ).join('');
+                currentWordEl.innerHTML = predictionsHtml;
+            } else {
+                currentWordEl.innerHTML = '<div style="color: #999;">Start typing...</div>';
+            }
             
             // Update sequence
             const sequenceEl = document.getElementById('sequence');
@@ -537,7 +555,7 @@
 
         async function acceptWord(word = null) {
             try {
-                const result = await makeRequest('/accept_word', { word: word || currentState.current_word });
+                const result = await makeRequest('/accept_word', { word: word });
                 updateUI(result);
             } catch (error) {
                 console.error('Error accepting word:', error);

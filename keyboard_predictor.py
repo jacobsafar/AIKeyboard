@@ -43,22 +43,25 @@ class KeyboardPredictor:
         
         The user pressed buttons in this sequence: {sequence_str}
         
-        Based on this sequence, predict the most likely English word the user is trying to type.
-        Also provide up to 4 alternative words that could match this sequence.
+        Based on this sequence, predict the 3 most likely English words the user is trying to type.
+        List them in order of probability (most likely first).
+        Also provide up to 5 additional alternative words that could match this sequence.
         
         Consider:
         - Common English words
         - Letter frequency and common patterns
         - Context and word probability
+        - Word usage frequency in English
         
         Respond with JSON in this format:
         {{
-            "current_word": "most_likely_word",
-            "alternative_words": ["word1", "word2", "word3", "word4"],
+            "top_predictions": ["word1", "word2", "word3"],
+            "alternative_words": ["word4", "word5", "word6", "word7", "word8"],
             "confidence": 0.85
         }}
         
-        Only include real English words. Make sure the words actually match the button sequence.
+        Only include real English words. Make sure all words actually match the button sequence.
+        Prioritize common, frequently used words in the top_predictions.
         """
         
         try:
@@ -82,19 +85,24 @@ class KeyboardPredictor:
             result = json.loads(response.choices[0].message.content)
             
             # Validate the result
-            current_word = result.get("current_word", "").upper()
+            top_predictions = [word.upper() for word in result.get("top_predictions", [])]
             alternative_words = [word.upper() for word in result.get("alternative_words", [])]
             
             # Verify words match the sequence
-            if current_word and self._validate_word_sequence(current_word, button_sequence):
-                validated_alternatives = [
-                    word for word in alternative_words 
-                    if self._validate_word_sequence(word, button_sequence)
-                ]
-                
+            validated_top = [
+                word for word in top_predictions 
+                if self._validate_word_sequence(word, button_sequence)
+            ]
+            validated_alternatives = [
+                word for word in alternative_words 
+                if self._validate_word_sequence(word, button_sequence)
+            ]
+            
+            # Ensure we have at least one prediction
+            if validated_top:
                 return {
-                    "current_word": current_word,
-                    "alternative_words": validated_alternatives,
+                    "top_predictions": validated_top[:3],  # Limit to 3
+                    "alternative_words": validated_alternatives[:5],  # Limit to 5
                     "confidence": result.get("confidence", 0.0)
                 }
             else:
@@ -195,10 +203,10 @@ class KeyboardPredictor:
             
             if matches:
                 return {
-                    "current_word": matches[0],
-                    "alternative_words": matches[1:5],
+                    "top_predictions": matches[:3],  # First 3 as top predictions
+                    "alternative_words": matches[3:8],  # Next 5 as alternatives
                     "confidence": 0.6
                 }
         
         # If no matches found, return empty
-        return {"current_word": "", "alternative_words": []}
+        return {"top_predictions": [], "alternative_words": []}

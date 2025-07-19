@@ -9,12 +9,14 @@ app.secret_key = os.urandom(24)  # For session management
 # Initialize the keyboard predictor
 predictor = KeyboardPredictor()
 
-def init_session():
-    """Initialize session variables if not present"""
+@app.route('/')
+def index():
+    """Main page with the keyboard interface"""
+    # Initialize session variables if not present
     if 'button_sequence' not in session:
         session['button_sequence'] = []
-    if 'top_predictions' not in session:
-        session['top_predictions'] = []
+    if 'current_word' not in session:
+        session['current_word'] = ""
     if 'predicted_words' not in session:
         session['predicted_words'] = []
     if 'next_word_predictions' not in session:
@@ -25,18 +27,28 @@ def init_session():
         session['start_time'] = time.time()
     if 'word_count' not in session:
         session['word_count'] = 0
-
-@app.route('/')
-def index():
-    """Main page with the keyboard interface"""
-    init_session()
+    
     return render_template('index.html')
 
 @app.route('/press_button', methods=['POST'])
 def press_button():
     """Handle button press and return AI prediction"""
     try:
-        init_session()
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
         
         data = request.get_json()
         button_num = data.get('button')
@@ -66,7 +78,7 @@ def press_button():
         wpm = (session['word_count'] / (elapsed_time / 60)) if elapsed_time > 0 else 0
         
         return jsonify({
-            'top_predictions': session['top_predictions'],
+            'current_word': session['current_word'],
             'alternative_words': session['predicted_words'],
             'next_word_predictions': session['next_word_predictions'],
             'button_sequence': session['button_sequence'],
@@ -83,14 +95,24 @@ def press_button():
 def accept_word():
     """Accept the current predicted word"""
     try:
-        init_session()
-        
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+            
         data = request.get_json()
-        word = data.get('word')
-        
-        # If no word provided, use the first top prediction
-        if not word and session['top_predictions']:
-            word = session['top_predictions'][0]
+        word = data.get('word', session.get('current_word', ''))
         
         if word:
             # Add word to typed text
@@ -101,7 +123,7 @@ def accept_word():
             
             # Reset for next word
             session['button_sequence'] = []
-            session['top_predictions'] = []
+            session['current_word'] = ""
             session['predicted_words'] = []
             session['next_word_predictions'] = []
             session['word_count'] += 1
@@ -124,18 +146,32 @@ def accept_word():
 def backspace():
     """Remove last button press"""
     try:
-        init_session()
-        
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+            
         if session['button_sequence']:
             session['button_sequence'].pop()
             
             if session['button_sequence']:
                 # Re-predict with remaining sequence
                 result = predictor.predict_word(session['button_sequence'])
-                session['top_predictions'] = result.get('top_predictions', [])
+                session['current_word'] = result.get('current_word', '')
                 session['predicted_words'] = result.get('alternative_words', [])
             else:
-                session['top_predictions'] = []
+                session['current_word'] = ""
                 session['predicted_words'] = []
                 session['next_word_predictions'] = []
         
@@ -144,7 +180,7 @@ def backspace():
         wpm = (session['word_count'] / (elapsed_time / 60)) if elapsed_time > 0 else 0
         
         return jsonify({
-            'top_predictions': session['top_predictions'],
+            'current_word': session['current_word'],
             'alternative_words': session['predicted_words'],
             'next_word_predictions': session['next_word_predictions'],
             'button_sequence': session['button_sequence'],
@@ -161,10 +197,24 @@ def backspace():
 def new_word():
     """Start a new word (clear current sequence)"""
     try:
-        init_session()
-        
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+            
         session['button_sequence'] = []
-        session['top_predictions'] = []
+        session['current_word'] = ""
         session['predicted_words'] = []
         session['next_word_predictions'] = []
         
@@ -173,7 +223,7 @@ def new_word():
         wpm = (session['word_count'] / (elapsed_time / 60)) if elapsed_time > 0 else 0
         
         return jsonify({
-            'top_predictions': session['top_predictions'],
+            'current_word': session['current_word'],
             'alternative_words': session['predicted_words'],
             'next_word_predictions': session['next_word_predictions'],
             'button_sequence': session['button_sequence'],
@@ -190,15 +240,29 @@ def new_word():
 def add_space():
     """Add a space to the typed text"""
     try:
-        init_session()
-        
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+            
         # Add space to typed text if there's already text
         if session['typed_text']:
             session['typed_text'] += " "
         
         # Clear current word predictions
         session['button_sequence'] = []
-        session['top_predictions'] = []
+        session['current_word'] = ""
         session['predicted_words'] = []
         session['next_word_predictions'] = []
         
@@ -207,7 +271,7 @@ def add_space():
         wpm = (session['word_count'] / (elapsed_time / 60)) if elapsed_time > 0 else 0
         
         return jsonify({
-            'top_predictions': session['top_predictions'],
+            'current_word': session['current_word'],
             'alternative_words': session['predicted_words'],
             'next_word_predictions': session['next_word_predictions'],
             'button_sequence': session['button_sequence'],
@@ -226,7 +290,7 @@ def clear_all():
     try:
         # Initialize and clear all session variables
         session['button_sequence'] = []
-        session['top_predictions'] = []
+        session['current_word'] = ""
         session['predicted_words'] = []
         session['next_word_predictions'] = []
         session['typed_text'] = ""
@@ -234,7 +298,7 @@ def clear_all():
         session['word_count'] = 0
         
         return jsonify({
-            'top_predictions': session['top_predictions'],
+            'current_word': session['current_word'],
             'alternative_words': session['predicted_words'],
             'next_word_predictions': session['next_word_predictions'],
             'button_sequence': session['button_sequence'],
@@ -251,14 +315,12 @@ def clear_all():
 def get_state():
     """Get current application state"""
     try:
-        init_session()
-        
         # Calculate performance metrics
         elapsed_time = time.time() - session.get('start_time', time.time())
         wpm = (session.get('word_count', 0) / (elapsed_time / 60)) if elapsed_time > 0 else 0
         
         return jsonify({
-            'top_predictions': session.get('top_predictions', []),
+            'current_word': session.get('current_word', ''),
             'alternative_words': session.get('predicted_words', []),
             'next_word_predictions': session.get('next_word_predictions', []),
             'button_sequence': session.get('button_sequence', []),
