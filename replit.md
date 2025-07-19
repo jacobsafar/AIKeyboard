@@ -33,6 +33,10 @@ The architecture is designed for simplicity and real-time interaction, with stat
   - Button 2: SRDLCUG (second most frequent - 24% corpus coverage)
   - Button 3: MPFYWB (third most frequent - 11% corpus coverage)
   - Button 4: VKXQJZ (least frequent - 3% corpus coverage)
+- **Name Database (names_database.py)**: Comprehensive proper name lexicon
+  - 200+ US Census first names (male and female)
+  - 100+ common surnames from various sources
+  - Sequence matching for accurate name predictions
 
 ## Data Flow
 
@@ -93,5 +97,10 @@ The application is designed for simple deployment:
   - Button 3: MPFYWB (11% coverage) - third tier frequency  
   - Button 4: VKXQJZ (3% coverage) - least common letters
 - **Name Recognition**: Added support for proper names like JACOB, MARIA in predictions
+- **Comprehensive Name Database**: Integrated US Census first names + common surnames (500+ names)
+- **Context-Aware Name Prioritization**: AI now prioritizes names when context suggests introductions
+  - "My name is..." strongly favors first names
+  - "Last name is..." prioritizes surnames
+  - Removes fallback short-circuiting to maintain context sensitivity
 
 The system prioritizes simplicity and real-time interaction over complex data persistence or multi-user management, making it suitable for single-user or demonstration environments.

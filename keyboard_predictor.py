@@ -1,6 +1,7 @@
 import os
 import json
 from openai import OpenAI
+from names_database import get_names_for_sequence, is_name
 
 class KeyboardPredictor:
     def __init__(self):
@@ -63,9 +64,14 @@ class KeyboardPredictor:
         List the 3 most likely words first, then up to 5 additional alternatives.
         Include:
         - Common English words
-        - Proper names (Jacob, Maria, David, etc.)
+        - Proper names (Jacob, Maria, David, Smith, Johnson, etc.)
         - Place names when relevant
         - All grammatically correct words that fit the pattern
+        
+        IMPORTANT: Pay special attention to context clues for names:
+        - If context mentions "my name is", "I am", "called", strongly prioritize proper names
+        - If context suggests introducing someone, favor first names
+        - If context mentions family/surname, favor last names
         
         Respond with JSON in this format:
         {{
@@ -120,17 +126,31 @@ class KeyboardPredictor:
                 else:
                     print(f"Validation failed for alternative '{word}' with sequence {button_sequence}")
             
-            # Return results - use OpenAI predictions even if validation fails for now
-            # This allows users to see what the AI thinks even if it doesn't match perfectly
-            if validated_top or top_predictions:
-                return {
-                    "top_predictions": validated_top[:3] if validated_top else top_predictions[:3],
-                    "alternative_words": validated_alternatives[:5] if validated_alternatives else alternative_words[:5],
-                    "confidence": result.get("confidence", 0.0)
-                }
-            else:
-                print(f"No predictions from OpenAI for sequence {button_sequence}, using fallback")
-                return self._fallback_prediction(button_sequence)
+            # Get name candidates that match the sequence
+            name_candidates = get_names_for_sequence(button_sequence, self.groups)
+            print(f"Name candidates for sequence {button_sequence}: {name_candidates[:5]}")
+            
+            # Combine validated predictions with name candidates
+            all_candidates = validated_top + validated_alternatives + name_candidates
+            
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_candidates = []
+            for word in all_candidates:
+                if word not in seen:
+                    unique_candidates.append(word)
+                    seen.add(word)
+            
+            # Always return OpenAI results (context-aware) combined with name matches
+            # This ensures context like "my name is..." can prioritize names appropriately
+            final_top = unique_candidates[:3] if unique_candidates else top_predictions[:3]
+            final_alternatives = unique_candidates[3:8] if len(unique_candidates) > 3 else alternative_words[:5]
+            
+            return {
+                "top_predictions": final_top,
+                "alternative_words": final_alternatives,
+                "confidence": result.get("confidence", 0.0)
+            }
                 
         except Exception as e:
             print(f"API Error for sequence {button_sequence}: {str(e)}")
