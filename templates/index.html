@@ -747,7 +747,7 @@
             console.log('Backspace function called');
             
             // Add debug info about current state
-            console.log('Current button sequence length before backspace:', pendingSequence.length);
+            console.log('Current button sequence length before backspace:', currentState.button_sequence?.length || 0);
             
             const buttonElement = document.querySelector('.control-button.backspace');
             if (buttonElement) {
