@@ -159,15 +159,11 @@ def accept_word():
 
 @app.route('/backspace', methods=['POST'])
 def backspace():
-    """Remove last button press"""
+    """Remove last button press - instant response"""
     try:
         init_session()
         
-        # Rate limiting check
-        session_id = session.get('session_id', id(session))
-        if is_rate_limited(session_id):
-            return jsonify({'error': 'Too many requests, please slow down'}), 429
-        
+        # Remove last button from sequence
         if session['button_sequence']:
             session['button_sequence'].pop()
             
@@ -177,9 +173,15 @@ def backspace():
                 session['top_predictions'] = result.get('top_predictions', [])
                 session['predicted_words'] = result.get('alternative_words', [])
             else:
+                # If no sequence left, clear predictions
                 session['top_predictions'] = []
                 session['predicted_words'] = []
-                session['next_word_predictions'] = []
+                
+        # Update next word predictions based on current text
+        next_words = []
+        if session['typed_text'].strip():
+            next_words = predictor.predict_next_words(session['typed_text'], "")
+        session['next_word_predictions'] = next_words
         
         # Calculate performance metrics
         elapsed_time = time.time() - session['start_time']

@@ -838,16 +838,17 @@
         }
 
         async function backspace() {
-            if (isButtonOnCooldown('backspace')) {
-                return;
-            }
-            
-            setButtonCooldown('backspace');
-            
             const buttonElement = document.querySelector('.control-button.backspace');
             flashButton(buttonElement);
             
-            queueRequest('backspace', '/backspace', {});
+            // Make backspace instant - bypass queue and cooldown
+            try {
+                const result = await makeRequest('/backspace', {});
+                updateUI(result);
+            } catch (error) {
+                console.error('Error processing backspace:', error);
+                showError(`Error: ${error.message}`);
+            }
         }
 
         async function newWord() {
