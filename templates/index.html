@@ -558,7 +558,7 @@
         let isProcessing = false;
         let pendingRequests = new Set();
         let buttonCooldowns = new Map();
-        const BUTTON_COOLDOWN = 100; // 100ms cooldown per button
+        const BUTTON_COOLDOWN = 50; // 50ms cooldown per button
 
         // Queue processing system for handling rapid requests
         async function processRequestQueue() {
@@ -579,7 +579,7 @@
                 }
                 
                 // Small delay to prevent overwhelming the server
-                await new Promise(resolve => setTimeout(resolve, 20));
+                await new Promise(resolve => setTimeout(resolve, 10));
             }
             
             isProcessing = false;
@@ -590,7 +590,8 @@
             const { type, url, data } = request;
             const requestKey = `${type}-${JSON.stringify(data)}`;
             
-            if (pendingRequests.has(requestKey)) {
+            // Don't check for duplicate button press requests
+            if (type !== 'press_button' && pendingRequests.has(requestKey)) {
                 throw new Error('Request already pending');
             }
             
@@ -604,10 +605,13 @@
             }
         }
 
-        // Add request to queue with deduplication
+        // Add request to queue with selective deduplication
         function queueRequest(type, url, data = {}) {
-            // Remove duplicate requests of same type
-            requestQueue = requestQueue.filter(req => req.type !== type);
+            // For button presses, never deduplicate - we want every press
+            if (type !== 'press_button') {
+                // For other actions, remove duplicate requests of same type
+                requestQueue = requestQueue.filter(req => req.type !== type);
+            }
             
             // Add new request
             requestQueue.push({ type, url, data });
@@ -751,21 +755,11 @@
         }
 
         async function pressButton(buttonNum) {
-            const buttonId = `button-${buttonNum}`;
-            
-            // Check cooldown to prevent too rapid clicking
-            if (isButtonOnCooldown(buttonId)) {
-                return;
-            }
-            
-            // Set cooldown and visual feedback
-            setButtonCooldown(buttonId);
-            
             // Find button element for visual feedback
             const buttonElement = document.querySelector(`.keyboard-button[onclick*="pressButton(${buttonNum})"]`);
             flashButton(buttonElement);
             
-            // Queue the request
+            // Queue the request immediately - no cooldown for button presses
             queueRequest('press_button', '/press_button', { button: buttonNum });
         }
 
