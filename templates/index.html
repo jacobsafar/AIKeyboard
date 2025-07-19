@@ -647,9 +647,12 @@
             const currentWordEl = document.getElementById('current-word');
             if (state.top_predictions && state.top_predictions.length > 0) {
                 // Show all 3 predictions
+                const validationFailed = state.validation_failed || false;
+                const warningText = validationFailed ? ' ⚠️' : '';
                 const predictionsHtml = state.top_predictions.map((word, index) => 
-                    `<div class="prediction-option" onclick="acceptWord('${word}')" style="cursor: pointer; margin: 5px 0; padding: 10px; background: ${index === 0 ? '#ff6b6b' : '#ffa726'}; color: white; border-radius: 8px; text-align: center;">
-                        <strong>${index + 1}. ${word}</strong>
+                    `<div class="prediction-option" onclick="acceptWord('${word}')" style="cursor: pointer; margin: 5px 0; padding: 10px; background: ${validationFailed ? '#dc3545' : (index === 0 ? '#ff6b6b' : '#ffa726')}; color: white; border-radius: 8px; text-align: center;">
+                        <strong>${index + 1}. ${word}${warningText}</strong>
+                        ${validationFailed && index === 0 ? '<div style="font-size: 12px; margin-top: 5px;">Unvalidated prediction</div>' : ''}
                     </div>`
                 ).join('');
                 currentWordEl.innerHTML = predictionsHtml;

@@ -59,11 +59,12 @@ class KeyboardPredictor:
             data = json.loads(response.choices[0].message.content)
 
             # Combine and uppercase
-            raw = [w.upper() for w in data.get("top_predictions", [])]
-            raw += [w.upper() for w in data.get("alternative_words", [])]
+            raw_top = [w.upper() for w in data.get("top_predictions", [])]
+            raw_alt = [w.upper() for w in data.get("alternative_words", [])]
+            all_raw = raw_top + raw_alt
 
             # Validate each candidate
-            valid = [w for w in raw if self._validate_word_sequence(w, button_sequence)]
+            valid = [w for w in all_raw if self._validate_word_sequence(w, button_sequence)]
             if valid:
                 return {
                     "top_predictions": valid[:3],
@@ -79,8 +80,14 @@ class KeyboardPredictor:
             )
             temperature = 0.2
 
-        # If still no valid output, return empty lists
-        return {"top_predictions": [], "alternative_words": []}
+        # If still no valid output, return the raw predictions with low confidence
+        # This allows user to see what the AI predicted even if validation failed
+        return {
+            "top_predictions": raw_top[:3] if raw_top else [],
+            "alternative_words": raw_alt[:5] if raw_alt else [],
+            "confidence": 0.1,  # Low confidence to indicate these are unvalidated
+            "validation_failed": True
+        }
 
     def _build_prompt(self, button_sequence, context_text):
         """
@@ -132,9 +139,12 @@ Respond with JSON:
         Ensure each letter of the word matches the corresponding button group.
         """
         if len(word) != len(button_sequence):
+            print(f"Length mismatch: word '{word}' has {len(word)} letters, sequence has {len(button_sequence)} buttons")
             return False
-        for ch, btn in zip(word, button_sequence):
+        for i, (ch, btn) in enumerate(zip(word, button_sequence)):
             if ch not in self.groups.get(btn, ""):
+                expected_letters = self.groups.get(btn, "")
+                print(f"Validation failed for word '{word}' at position {i}: letter '{ch}' not in button {btn} group '{expected_letters}'")
                 return False
         return True
 
