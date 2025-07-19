@@ -838,13 +838,21 @@
         }
 
         async function backspace() {
+            console.log('Backspace function called');
             const buttonElement = document.querySelector('.control-button.backspace');
-            flashButton(buttonElement);
+            if (buttonElement) {
+                flashButton(buttonElement);
+            } else {
+                console.error('Backspace button element not found');
+            }
             
             // Make backspace instant - bypass queue and cooldown
             try {
+                console.log('Making backspace request...');
                 const result = await makeRequest('/backspace', {});
+                console.log('Backspace result:', result);
                 updateUI(result);
+                console.log('UI updated after backspace');
             } catch (error) {
                 console.error('Error processing backspace:', error);
                 showError(`Error: ${error.message}`);
