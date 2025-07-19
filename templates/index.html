@@ -194,21 +194,34 @@
             box-sizing: border-box;
         }
         
-        /* Content positioning for each triangle - centered in middle */
+        /* Content positioning for each triangle - truly centered */
         .keyboard-button.up .button-content {
-            transform: translateY(-10px);
+            transform: translateY(-60px);
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -60px);
         }
         
         .keyboard-button.right .button-content {
-            transform: translateX(10px);
+            position: absolute;
+            top: 50%;
+            left: 60%;
+            transform: translate(20px, -50%);
         }
         
         .keyboard-button.down .button-content {
-            transform: translateY(10px);
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, 20px);
         }
         
         .keyboard-button.left .button-content {
-            transform: translateX(-10px);
+            position: absolute;
+            top: 50%;
+            left: 40%;
+            transform: translate(-20px, -50%);
         }
         
         .button-content {
