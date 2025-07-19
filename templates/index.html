@@ -751,12 +751,15 @@
         }
 
         async function pressButton(buttonNum) {
+            console.log(`Button ${buttonNum} pressed, pending sequence:`, pendingButtonSequence);
+            
             // Find button element for visual feedback
             const buttonElement = document.querySelector(`.keyboard-button[onclick*="pressButton(${buttonNum})"]`);
             flashButton(buttonElement);
             
             // Add button to pending sequence for immediate UI feedback
             pendingButtonSequence.push(buttonNum);
+            console.log(`Updated pending sequence:`, pendingButtonSequence);
             
             // Update UI to show the pending button sequence immediately
             updateCurrentSequenceDisplay();
@@ -764,17 +767,23 @@
             // Clear any existing debounce timer
             if (debounceTimer) {
                 clearTimeout(debounceTimer);
+                console.log('Cleared existing debounce timer');
             }
             
             // Set new timer to send request after 1.5 seconds of inactivity
-            debounceTimer = setTimeout(() => {
-                // Send all pending buttons at once
+            debounceTimer = setTimeout(async () => {
+                console.log('Debounce timer fired, sending request for sequence:', pendingButtonSequence);
+                // Send the last button pressed to trigger prediction
                 if (pendingButtonSequence.length > 0) {
-                    queueRequest('press_button', '/press_button', { 
-                        button: buttonNum,
-                        sequence: [...pendingButtonSequence] // Send full sequence for context
-                    });
-                    pendingButtonSequence = []; // Clear pending sequence
+                    try {
+                        const result = await makeRequest('/press_button', { button: buttonNum });
+                        updateUI(result);
+                        pendingButtonSequence = []; // Clear pending sequence after successful request
+                        updateCurrentSequenceDisplay();
+                    } catch (error) {
+                        console.error('Error in debounced request:', error);
+                        showError(`Error: ${error.message}`);
+                    }
                 }
             }, DEBOUNCE_DELAY);
         }
@@ -792,7 +801,7 @@
         }
 
         async function backspace() {
-            console.log('Backspace function called');
+            console.log('Backspace function called, pending sequence:', pendingButtonSequence);
             
             const buttonElement = document.querySelector('.control-button.backspace');
             if (buttonElement) {
@@ -803,12 +812,15 @@
             
             // Handle pending sequence locally first for immediate feedback
             if (pendingButtonSequence.length > 0) {
+                console.log('Removing button from pending sequence');
                 // Remove last button from pending sequence
                 pendingButtonSequence.pop();
+                console.log('New pending sequence:', pendingButtonSequence);
                 updateCurrentSequenceDisplay();
                 
                 // If sequence is now empty, clear the timer
                 if (pendingButtonSequence.length === 0) {
+                    console.log('Pending sequence empty, clearing timer');
                     clearPendingSequence();
                     // Clear the sequence display
                     const sequenceEl = document.getElementById('sequence');
@@ -818,6 +830,7 @@
             }
             
             // Clear any remaining pending sequence and make API call for server state
+            console.log('No pending buttons, making server backspace request');
             clearPendingSequence();
             
             // Make backspace instant - bypass queue and cooldown
