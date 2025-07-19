@@ -123,115 +123,130 @@
         
         .keyboard {
             position: relative;
-            width: 280px;
-            height: 280px;
+            width: 300px;
+            height: 300px;
             margin: 30px auto;
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
         
         .keyboard-inner {
             position: relative;
             width: 100%;
             height: 100%;
-            border-radius: 10px;
+            border-radius: 15px;
             overflow: hidden;
         }
         
         .keyboard-button {
             position: absolute;
-            border: 2px solid #dee2e6;
+            background: #d4d4d4;
+            border: none;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            background: #fff;
+            overflow: hidden;
         }
         
         .keyboard-button:hover {
-            background: #e9ecef;
-            border-color: #4ecdc4;
-            transform: scale(1.05);
+            filter: brightness(1.1);
+            z-index: 10;
         }
         
         .keyboard-button:active {
-            background: #4ecdc4;
-            color: white;
-            transform: scale(0.95);
+            transform: scale(0.98);
+            filter: brightness(0.95);
         }
         
-        /* Simplified triangular buttons */
+        /* Triangle buttons using clip-path */
         .keyboard-button.up {
-            width: 120px;
-            height: 120px;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 0 0, 100% 0);
+            background: linear-gradient(135deg, #e0e0e0, #c0c0c0);
         }
         
         .keyboard-button.right {
-            width: 120px;
-            height: 120px;
-            top: 50%;
-            right: 0;
-            transform: translateY(-50%);
-            clip-path: polygon(0% 0%, 0% 100%, 100% 50%);
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+            background: linear-gradient(225deg, #e0e0e0, #c0c0c0);
         }
         
         .keyboard-button.down {
-            width: 120px;
-            height: 120px;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 100% 100%, 0 100%);
+            background: linear-gradient(315deg, #e0e0e0, #c0c0c0);
         }
         
         .keyboard-button.left {
-            width: 120px;
-            height: 120px;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            clip-path: polygon(100% 0%, 0% 50%, 100% 100%);
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 0 100%, 0 0);
+            background: linear-gradient(45deg, #e0e0e0, #c0c0c0);
+            border: 3px solid #ff6b35;
+            box-sizing: border-box;
         }
         
-        /* Center the content in each triangle */
-        .keyboard-button.up {
-            padding-bottom: 30px;
+        /* Content positioning for each triangle */
+        .keyboard-button.up .button-content {
+            transform: translateY(-30px);
         }
         
-        .keyboard-button.right {
-            padding-left: 30px;
+        .keyboard-button.right .button-content {
+            transform: translateX(30px);
         }
         
-        .keyboard-button.down {
-            padding-top: 30px;
+        .keyboard-button.down .button-content {
+            transform: translateY(30px);
         }
         
-        .keyboard-button.left {
-            padding-right: 30px;
+        .keyboard-button.left .button-content {
+            transform: translateX(-30px);
         }
         
-        /* Center decoration */
+        .button-content {
+            text-align: center;
+            pointer-events: none;
+        }
+        
+        .button-number {
+            font-size: 28px;
+            margin-bottom: 5px;
+            font-weight: 800;
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .button-letters {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 5px;
+            line-height: 1.2;
+            text-align: center;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        /* Add a center decoration */
         .keyboard-center {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 15px;
-            height: 15px;
-            background: #6c757d;
+            width: 20px;
+            height: 20px;
+            background: #2a2a2a;
             border-radius: 50%;
             z-index: 20;
             pointer-events: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
         }
         
         .controls {
@@ -430,17 +445,29 @@
         
         <div class="keyboard">
             <div class="keyboard-inner">
-                <button class="keyboard-button up" onclick="pressButton(1)" title="Button 1: ETAOINH">
-                    1
+                <button class="keyboard-button up" onclick="pressButton(1)" title="↑ Arrow Key - Button 1">
+                    <div class="button-content">
+                        <div class="button-number">1</div>
+                        <div class="button-letters">ETAOINH<br>(62%)</div>
+                    </div>
                 </button>
-                <button class="keyboard-button right" onclick="pressButton(4)" title="Button 4: VKXQJZ">
-                    4
+                <button class="keyboard-button left" onclick="pressButton(3)" title="← Arrow Key - Button 3">
+                    <div class="button-content">
+                        <div class="button-number">3</div>
+                        <div class="button-letters">MPFYWB<br>(11%)</div>
+                    </div>
                 </button>
-                <button class="keyboard-button down" onclick="pressButton(2)" title="Button 2: SRDLCUG">
-                    2
+                <button class="keyboard-button right" onclick="pressButton(4)" title="→ Arrow Key - Button 4">
+                    <div class="button-content">
+                        <div class="button-number">4</div>
+                        <div class="button-letters">VKXQJZ<br>(3%)</div>
+                    </div>
                 </button>
-                <button class="keyboard-button left" onclick="pressButton(3)" title="Button 3: MPFYWB">
-                    3
+                <button class="keyboard-button down" onclick="pressButton(2)" title="↓ Arrow Key - Button 2">
+                    <div class="button-content">
+                        <div class="button-number">2</div>
+                        <div class="button-letters">SRDLCUG<br>(24%)</div>
+                    </div>
                 </button>
                 <div class="keyboard-center"></div>
             </div>
