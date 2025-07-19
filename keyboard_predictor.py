@@ -122,14 +122,18 @@ class KeyboardPredictor:
             print(f"API Error: {str(e)}")
             return self._fallback_prediction(button_sequence)
     
-    def predict_next_words(self, current_text, current_word):
+    def predict_next_words(self, current_text, current_word=""):
         """
         Predict the next word(s) based on context
         """
-        if not current_word:
+        if not current_text.strip() and not current_word:
             return []
         
-        context = current_text + " " + current_word if current_text else current_word
+        # Use current_text as context, add current_word if provided
+        if current_word:
+            context = current_text + " " + current_word if current_text else current_word
+        else:
+            context = current_text.strip()
         
         prompt = f"""
         Given this text: "{context}"
@@ -139,13 +143,16 @@ class KeyboardPredictor:
         - Grammar and sentence structure
         - Common word combinations and phrases
         - Context and meaning
+        - Natural language flow and sentence completion
+        - Proper punctuation needs (if sentence is complete)
         
         Respond with JSON in this format:
         {{
             "next_words": ["word1", "word2", "word3"]
         }}
         
-        Only suggest common English words that would make grammatical sense.
+        Only suggest common English words that would make grammatical sense and help complete thoughts naturally.
+        If the sentence seems complete, suggest words that would start a new sentence or thought.
         """
         
         try:

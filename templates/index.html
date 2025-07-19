@@ -81,10 +81,21 @@
         }
         
         .next-words li {
-            padding: 8px 0;
+            padding: 10px;
             border-bottom: 1px solid #eee;
             font-weight: 500;
-            color: #4ecdc4;
+            color: white;
+            background: #4ecdc4;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .next-words li:hover {
+            background: #45b7aa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         
         .next-words li:last-child {
@@ -478,11 +489,14 @@
                 state.next_word_predictions.slice(0, 3).forEach((word, index) => {
                     const li = document.createElement('li');
                     li.textContent = `${index + 1}. ${word}`;
+                    li.onclick = () => addNextWord(word);
                     nextWordsEl.appendChild(li);
                 });
             } else {
                 const li = document.createElement('li');
                 li.textContent = 'No suggestions yet';
+                li.style.background = '#6c757d';
+                li.style.cursor = 'default';
                 nextWordsEl.appendChild(li);
             }
             
@@ -586,6 +600,15 @@
                 updateUI(result);
             } catch (error) {
                 console.error('Error adding space:', error);
+            }
+        }
+
+        async function addNextWord(word) {
+            try {
+                const result = await makeRequest('/add_next_word', { word: word });
+                updateUI(result);
+            } catch (error) {
+                console.error('Error adding next word:', error);
             }
         }
 

@@ -52,13 +52,10 @@ def press_button():
         session['top_predictions'] = result.get('top_predictions', [])
         session['predicted_words'] = result.get('alternative_words', [])
         
-        # Get next word predictions if we have predictions
+        # Get next word predictions based on current typed text
         next_words = []
-        if session['top_predictions']:
-            next_words = predictor.predict_next_words(
-                session['typed_text'], 
-                session['top_predictions'][0]  # Use first prediction for context
-            )
+        if session['typed_text'].strip():  # Only predict next words if there's existing text
+            next_words = predictor.predict_next_words(session['typed_text'], "")
         session['next_word_predictions'] = next_words
         
         # Calculate performance metrics
@@ -201,6 +198,52 @@ def add_space():
         session['top_predictions'] = []
         session['predicted_words'] = []
         session['next_word_predictions'] = []
+        
+        # Calculate performance metrics
+        elapsed_time = time.time() - session['start_time']
+        wpm = (session['word_count'] / (elapsed_time / 60)) if elapsed_time > 0 else 0
+        
+        return jsonify({
+            'top_predictions': session['top_predictions'],
+            'alternative_words': session['predicted_words'],
+            'next_word_predictions': session['next_word_predictions'],
+            'button_sequence': session['button_sequence'],
+            'typed_text': session['typed_text'],
+            'word_count': session['word_count'],
+            'elapsed_time': round(elapsed_time, 1),
+            'wpm': round(wpm, 1)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/add_next_word', methods=['POST'])
+def add_next_word():
+    """Add a suggested next word to the typed text"""
+    try:
+        init_session()
+        
+        data = request.get_json()
+        word = data.get('word')
+        
+        if word:
+            # Add word to typed text
+            if session['typed_text']:
+                session['typed_text'] += " " + word
+            else:
+                session['typed_text'] = word
+            
+            # Clear current word predictions but keep next word suggestions
+            session['button_sequence'] = []
+            session['top_predictions'] = []
+            session['predicted_words'] = []
+            session['word_count'] += 1
+            
+            # Update next word predictions based on new text
+            next_words = []
+            if session['typed_text'].strip():
+                next_words = predictor.predict_next_words(session['typed_text'], "")
+            session['next_word_predictions'] = next_words
         
         # Calculate performance metrics
         elapsed_time = time.time() - session['start_time']
