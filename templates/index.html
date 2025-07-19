@@ -828,9 +828,9 @@
         document.addEventListener('keydown', function(event) {
             console.log('Key pressed:', event.key, 'Code:', event.code, 'KeyCode:', event.keyCode);
             
-            // Handle Delete key by keyCode as well (keyCode 46)
-            if (event.keyCode === 46 || event.code === 'Delete') {
-                console.log('Delete key detected by keyCode/code');
+            // Handle Delete key by multiple detection methods (keyCode 46)
+            if (event.keyCode === 46 || event.code === 'Delete' || event.key === 'Delete' || event.key === 'Del') {
+                console.log('Delete key detected by keyCode/code/key:', event.keyCode, event.code, event.key);
                 event.preventDefault();
                 backspace();
                 return;
