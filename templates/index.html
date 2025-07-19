@@ -828,22 +828,41 @@
         document.addEventListener('keydown', function(event) {
             console.log('Key pressed:', event.key, 'Code:', event.code, 'KeyCode:', event.keyCode, 'Which:', event.which);
             
-            // Comprehensive Delete key detection - handle all possible variations
+            // Enhanced Delete key detection - handle all possible variations and edge cases
             const isDeleteKey = (
+                // Standard Delete key codes
                 event.keyCode === 46 || 
                 event.which === 46 ||
                 event.code === 'Delete' || 
                 event.key === 'Delete' || 
                 event.key === 'Del' ||
+                // Case-insensitive matching
                 (event.key && event.key.toLowerCase() === 'delete') ||
                 (event.code && event.code.toLowerCase() === 'delete') ||
-                // Some keyboards send different codes for Delete
+                // Alternative Delete key codes for different keyboards
                 event.keyCode === 127 || 
-                event.which === 127
+                event.which === 127 ||
+                // Forward delete on some systems
+                (event.key && event.key.toLowerCase() === 'del') ||
+                // NumPad delete key
+                (event.location === 3 && event.key === '.') ||
+                // Some keyboards send 'Clear' for delete
+                event.key === 'Clear'
             );
             
-            if (isDeleteKey) {
-                console.log('DELETE KEY DETECTED! Key:', event.key, 'Code:', event.code, 'KeyCode:', event.keyCode, 'Which:', event.which);
+            // Enhanced Backspace detection 
+            const isBackspaceKey = (
+                event.keyCode === 8 || 
+                event.which === 8 ||
+                event.code === 'Backspace' || 
+                event.key === 'Backspace' ||
+                (event.key && event.key.toLowerCase() === 'backspace')
+            );
+            
+            // Map BOTH Delete and Backspace to the backspace functionality
+            if (isDeleteKey || isBackspaceKey) {
+                const keyType = isDeleteKey ? 'DELETE' : 'BACKSPACE';
+                console.log(`${keyType} KEY DETECTED! Key:`, event.key, 'Code:', event.code, 'KeyCode:', event.keyCode, 'Which:', event.which, 'Location:', event.location);
                 event.preventDefault();
                 backspace();
                 return;
@@ -880,21 +899,12 @@
                     event.preventDefault();
                     pressButton(6);
                     break;
-                case 'Enter':
+                case 'enter':
+                    event.preventDefault();
                     acceptWord();
                     break;
-                case 'Backspace':
-                    console.log('Backspace key pressed');
+                case 'escape':
                     event.preventDefault();
-                    backspace();
-                    break;
-                case 'Delete':
-                case 'del':
-                    console.log('Delete key pressed');
-                    event.preventDefault();
-                    backspace();
-                    break;
-                case 'Escape':
                     newWord();
                     break;
                 case ' ':
