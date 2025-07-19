@@ -547,10 +547,10 @@
         let buttonCooldowns = new Map();
         const BUTTON_COOLDOWN = 50; // 50ms cooldown per button
 
-        // Debounce handling for button presses
-        let pendingButtons = [];
-        let pressDebounceTimer = null;
-        const PRESS_DEBOUNCE = 200; // wait before sending presses
+        // Debounce handling for typing actions (presses & backspaces)
+        let pendingActions = [];
+        let actionDebounceTimer = null;
+        const ACTION_DEBOUNCE = 150; // wait before sending to API
 
         // Queue processing system for handling rapid requests
         async function processRequestQueue() {
@@ -598,13 +598,13 @@
         }
 
         // Add request to queue with selective deduplication
-        function queueRequest(type, url, data = {}) {
+        function queueRequest(type, url, data = {}, allowDuplicate = false) {
             // For button presses, never deduplicate - we want every press
-            if (type !== 'press_button') {
+            if (!allowDuplicate && type !== 'press_button') {
                 // For other actions, remove duplicate requests of same type
                 requestQueue = requestQueue.filter(req => req.type !== type);
             }
-            
+
             // Add new request
             requestQueue.push({ type, url, data });
             
@@ -623,16 +623,20 @@
             buttonCooldowns.set(buttonId, Date.now());
         }
 
-        function flushPendingButtons() {
-            if (pressDebounceTimer) {
-                clearTimeout(pressDebounceTimer);
-                pressDebounceTimer = null;
+        function flushPendingActions() {
+            if (actionDebounceTimer) {
+                clearTimeout(actionDebounceTimer);
+                actionDebounceTimer = null;
             }
-            if (pendingButtons.length > 0) {
-                pendingButtons.forEach(btn => {
-                    queueRequest('press_button', '/press_button', { button: btn });
+            if (pendingActions.length > 0) {
+                pendingActions.forEach(act => {
+                    if (act.type === 'press') {
+                        queueRequest('press_button', '/press_button', { button: act.button });
+                    } else if (act.type === 'backspace') {
+                        queueRequest('backspace', '/backspace', {}, true);
+                    }
                 });
-                pendingButtons = [];
+                pendingActions = [];
             }
         }
 
@@ -750,13 +754,16 @@
             const buttonElement = document.querySelector(`.keyboard-button[onclick*="pressButton(${buttonNum})"]`);
             flashButton(buttonElement);
 
-            pendingButtons.push(buttonNum);
-            if (pressDebounceTimer) {
-                clearTimeout(pressDebounceTimer);
+            currentState.button_sequence.push(buttonNum);
+            updateUI(currentState);
+
+            pendingActions.push({ type: 'press', button: buttonNum });
+            if (actionDebounceTimer) {
+                clearTimeout(actionDebounceTimer);
             }
-            pressDebounceTimer = setTimeout(() => {
-                flushPendingButtons();
-            }, PRESS_DEBOUNCE);
+            actionDebounceTimer = setTimeout(() => {
+                flushPendingActions();
+            }, ACTION_DEBOUNCE);
         }
 
         async function acceptWord(word = null) {
@@ -764,7 +771,7 @@
                 return;
             }
 
-            flushPendingButtons();
+            flushPendingActions();
             setButtonCooldown('accept-word');
             queueRequest('accept_word', '/accept_word', { word: word });
         }
@@ -782,18 +789,20 @@
                 console.error('Backspace button element not found');
             }
             
-            if (pendingButtons.length > 0) {
-                // Remove the most recent unsent button
-                pendingButtons.pop();
+            if (pendingActions.length > 0 && pendingActions[pendingActions.length - 1].type === 'press') {
+                pendingActions.pop();
+                currentState.button_sequence.pop();
+                updateUI(currentState);
             } else {
-                flushPendingButtons();
-                try {
-                    const result = await makeRequest('/backspace', {});
-                    updateUI(result);
-                } catch (error) {
-                    console.error('Error processing backspace:', error);
-                    showError(`Error: ${error.message}`);
+                currentState.button_sequence.pop();
+                pendingActions.push({ type: 'backspace' });
+                updateUI(currentState);
+                if (actionDebounceTimer) {
+                    clearTimeout(actionDebounceTimer);
                 }
+                actionDebounceTimer = setTimeout(() => {
+                    flushPendingActions();
+                }, ACTION_DEBOUNCE);
             }
         }
 
@@ -802,7 +811,7 @@
                 return;
             }
 
-            flushPendingButtons();
+            flushPendingActions();
             setButtonCooldown('new-word');
             queueRequest('new_word', '/new_word', {});
         }
@@ -812,7 +821,7 @@
                 return;
             }
 
-            flushPendingButtons();
+            flushPendingActions();
             setButtonCooldown('add-space');
 
             const buttonElement = document.querySelector('.control-button.space');
@@ -826,7 +835,7 @@
                 return;
             }
 
-            flushPendingButtons();
+            flushPendingActions();
             setButtonCooldown('add-next-word');
             queueRequest('add_next_word', '/add_next_word', { word: word });
         }
@@ -836,7 +845,7 @@
                 return;
             }
 
-            flushPendingButtons();
+            flushPendingActions();
             setButtonCooldown('clear-all');
 
             const buttonElement = document.querySelector('.control-button.clear');
