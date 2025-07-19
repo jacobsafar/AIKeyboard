@@ -856,7 +856,12 @@
                     acceptWord();
                     break;
                 case 'Backspace':
+                    console.log('Backspace key pressed');
+                    event.preventDefault();
+                    backspace();
+                    break;
                 case 'Delete':
+                    console.log('Delete key pressed');
                     event.preventDefault();
                     backspace();
                     break;
