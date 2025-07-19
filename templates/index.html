@@ -773,8 +773,8 @@
             // Set new timer to send request after 1.5 seconds of inactivity
             debounceTimer = setTimeout(async () => {
                 console.log('Debounce timer fired, sending request for sequence:', pendingButtonSequence);
-                // Send the last button pressed to trigger prediction
-                if (pendingButtonSequence.length > 0) {
+                // Only send request if we have at least 2 buttons to avoid single letter predictions
+                if (pendingButtonSequence.length >= 2) {
                     try {
                         const result = await makeRequest('/press_button', { button: buttonNum });
                         updateUI(result);
@@ -784,6 +784,10 @@
                         console.error('Error in debounced request:', error);
                         showError(`Error: ${error.message}`);
                     }
+                } else if (pendingButtonSequence.length === 1) {
+                    // For single button, just update the display but don't make prediction
+                    console.log('Single button pressed, waiting for more input...');
+                    updateCurrentSequenceDisplay();
                 }
             }, DEBOUNCE_DELAY);
         }
@@ -793,11 +797,29 @@
                 return;
             }
             
-            // Clear any pending button sequence since we're accepting a word
-            clearPendingSequence();
-            
-            setButtonCooldown('accept-word');
-            queueRequest('accept_word', '/accept_word', { word: word });
+            // If there's a pending sequence with 2+ buttons, send it first to get predictions
+            if (pendingButtonSequence.length >= 2) {
+                try {
+                    // Send the button sequence to get the current predictions first
+                    const result = await makeRequest('/press_button', { button: pendingButtonSequence[pendingButtonSequence.length - 1] });
+                    updateUI(result);
+                    pendingButtonSequence = [];
+                    updateCurrentSequenceDisplay();
+                    
+                    // Now accept the word
+                    setButtonCooldown('accept-word');
+                    queueRequest('accept_word', '/accept_word', { word: word });
+                } catch (error) {
+                    console.error('Error getting predictions before accepting:', error);
+                    showError(`Error: ${error.message}`);
+                }
+            } else {
+                // Clear any pending button sequence since we're accepting a word
+                clearPendingSequence();
+                
+                setButtonCooldown('accept-word');
+                queueRequest('accept_word', '/accept_word', { word: word });
+            }
         }
 
         async function backspace() {
@@ -863,15 +885,35 @@
                 return;
             }
             
-            // Clear any pending button sequence
-            clearPendingSequence();
-            
-            setButtonCooldown('add-space');
-            
-            const buttonElement = document.querySelector('.control-button.space');
-            flashButton(buttonElement);
-            
-            queueRequest('add_space', '/add_space', {});
+            // If there's a pending sequence with 2+ buttons, send it first to get predictions
+            if (pendingButtonSequence.length >= 2) {
+                try {
+                    // Send the button sequence to get the current predictions first
+                    const result = await makeRequest('/press_button', { button: pendingButtonSequence[pendingButtonSequence.length - 1] });
+                    updateUI(result);
+                    pendingButtonSequence = [];
+                    updateCurrentSequenceDisplay();
+                    
+                    // Now add space (which accepts current word and adds space)
+                    setButtonCooldown('add-space');
+                    const buttonElement = document.querySelector('.control-button.space');
+                    flashButton(buttonElement);
+                    queueRequest('add_space', '/add_space', {});
+                } catch (error) {
+                    console.error('Error getting predictions before adding space:', error);
+                    showError(`Error: ${error.message}`);
+                }
+            } else {
+                // Clear any pending button sequence
+                clearPendingSequence();
+                
+                setButtonCooldown('add-space');
+                
+                const buttonElement = document.querySelector('.control-button.space');
+                flashButton(buttonElement);
+                
+                queueRequest('add_space', '/add_space', {});
+            }
         }
 
         async function addNextWord(word) {
