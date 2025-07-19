@@ -138,25 +138,17 @@ class KeyboardPredictor:
             
             # Combine validated predictions with name candidates
             all_candidates = validated_top + validated_alternatives + name_candidates
+            unique_candidates = list(dict.fromkeys(all_candidates))   # dedupe + preserve order
             
-            # Remove duplicates while preserving order
-            seen = set()
-            unique_candidates = []
-            for word in all_candidates:
-                if word not in seen:
-                    unique_candidates.append(word)
-                    seen.add(word)
+            if unique_candidates:                         # ✅ we have at least one valid word
+                return {
+                    "top_predictions": unique_candidates[:3],
+                    "alternative_words": unique_candidates[3:8],
+                    "confidence": result.get("confidence", 0.0)
+                }
             
-            # Always return OpenAI results (context-aware) combined with name matches
-            # This ensures context like "my name is..." can prioritize names appropriately
-            final_top = unique_candidates[:3] if unique_candidates else top_predictions[:3]
-            final_alternatives = unique_candidates[3:8] if len(unique_candidates) > 3 else alternative_words[:5]
-            
-            return {
-                "top_predictions": final_top,
-                "alternative_words": final_alternatives,
-                "confidence": result.get("confidence", 0.0)
-            }
+            # No valid LLM suggestions → deterministic fallback
+            return self._fallback_prediction(button_sequence)
                 
         except Exception as e:
             print(f"API Error for sequence {button_sequence}: {str(e)}")
