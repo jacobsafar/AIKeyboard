@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify, session
 import os
 import time
+import threading
+from collections import defaultdict
 from keyboard_predictor import KeyboardPredictor
 
 app = Flask(__name__)
@@ -9,8 +11,29 @@ app.secret_key = os.urandom(24)  # For session management
 # Initialize the keyboard predictor
 predictor = KeyboardPredictor()
 
+# Rate limiting for rapid requests
+request_times = defaultdict(list)
+rate_limit_lock = threading.Lock()
+
+def is_rate_limited(session_id, max_requests=10, time_window=1.0):
+    """Check if the session is rate limited"""
+    with rate_limit_lock:
+        now = time.time()
+        # Clean old requests outside time window
+        request_times[session_id] = [t for t in request_times[session_id] if now - t < time_window]
+        
+        # Check if exceeded limit
+        if len(request_times[session_id]) >= max_requests:
+            return True
+        
+        # Add current request
+        request_times[session_id].append(now)
+        return False
+
 def init_session():
     """Initialize session variables if not present"""
+    if 'session_id' not in session:
+        session['session_id'] = os.urandom(16).hex()
     if 'button_sequence' not in session:
         session['button_sequence'] = []
     if 'top_predictions' not in session:
@@ -38,7 +61,15 @@ def press_button():
     try:
         init_session()
         
+        # Rate limiting check
+        session_id = session.get('session_id', id(session))
+        if is_rate_limited(session_id):
+            return jsonify({'error': 'Too many requests, please slow down'}), 429
+        
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
         button_num = data.get('button')
         
         if button_num not in [1, 2, 3, 4]:
@@ -132,6 +163,11 @@ def backspace():
     try:
         init_session()
         
+        # Rate limiting check
+        session_id = session.get('session_id', id(session))
+        if is_rate_limited(session_id):
+            return jsonify({'error': 'Too many requests, please slow down'}), 429
+        
         if session['button_sequence']:
             session['button_sequence'].pop()
             
@@ -168,6 +204,11 @@ def new_word():
     """Start a new word (clear current sequence)"""
     try:
         init_session()
+        
+        # Rate limiting check
+        session_id = session.get('session_id', id(session))
+        if is_rate_limited(session_id):
+            return jsonify({'error': 'Too many requests, please slow down'}), 429
         
         session['button_sequence'] = []
         session['top_predictions'] = []
@@ -276,6 +317,13 @@ def add_next_word():
 def clear_all():
     """Clear everything and start over"""
     try:
+        init_session()
+        
+        # Rate limiting check
+        session_id = session.get('session_id', id(session))
+        if is_rate_limited(session_id):
+            return jsonify({'error': 'Too many requests, please slow down'}), 429
+        
         # Initialize and clear all session variables
         session['button_sequence'] = []
         session['top_predictions'] = []

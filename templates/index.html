@@ -540,6 +540,93 @@
             wpm: 0
         };
 
+        // Request queue and state management for fast clicking
+        let requestQueue = [];
+        let isProcessing = false;
+        let pendingRequests = new Set();
+        let buttonCooldowns = new Map();
+        const BUTTON_COOLDOWN = 100; // 100ms cooldown per button
+
+        // Queue processing system for handling rapid requests
+        async function processRequestQueue() {
+            if (isProcessing || requestQueue.length === 0) {
+                return;
+            }
+            
+            isProcessing = true;
+            
+            while (requestQueue.length > 0) {
+                const request = requestQueue.shift();
+                try {
+                    const result = await executeRequest(request);
+                    updateUI(result);
+                } catch (error) {
+                    console.error(`Error processing ${request.type}:`, error);
+                    showError(`Error: ${error.message}`);
+                }
+                
+                // Small delay to prevent overwhelming the server
+                await new Promise(resolve => setTimeout(resolve, 20));
+            }
+            
+            isProcessing = false;
+        }
+
+        // Execute individual request
+        async function executeRequest(request) {
+            const { type, url, data } = request;
+            const requestKey = `${type}-${JSON.stringify(data)}`;
+            
+            if (pendingRequests.has(requestKey)) {
+                throw new Error('Request already pending');
+            }
+            
+            pendingRequests.add(requestKey);
+            
+            try {
+                const result = await makeRequest(url, data);
+                return result;
+            } finally {
+                pendingRequests.delete(requestKey);
+            }
+        }
+
+        // Add request to queue with deduplication
+        function queueRequest(type, url, data = {}) {
+            // Remove duplicate requests of same type
+            requestQueue = requestQueue.filter(req => req.type !== type);
+            
+            // Add new request
+            requestQueue.push({ type, url, data });
+            
+            // Process queue
+            processRequestQueue();
+        }
+
+        // Button cooldown management
+        function isButtonOnCooldown(buttonId) {
+            const now = Date.now();
+            const lastPress = buttonCooldowns.get(buttonId) || 0;
+            return now - lastPress < BUTTON_COOLDOWN;
+        }
+
+        function setButtonCooldown(buttonId) {
+            buttonCooldowns.set(buttonId, Date.now());
+        }
+
+        // Visual feedback for button presses
+        function flashButton(buttonElement) {
+            if (!buttonElement) return;
+            
+            buttonElement.style.transform = 'scale(0.95)';
+            buttonElement.style.filter = 'brightness(0.8)';
+            
+            setTimeout(() => {
+                buttonElement.style.transform = '';
+                buttonElement.style.filter = '';
+            }, 150);
+        }
+
         function showError(message) {
             const errorDiv = document.getElementById('error-message');
             errorDiv.textContent = message;
@@ -651,66 +738,88 @@
         }
 
         async function pressButton(buttonNum) {
-            try {
-                const result = await makeRequest('/press_button', { button: buttonNum });
-                updateUI(result);
-            } catch (error) {
-                console.error('Error pressing button:', error);
+            const buttonId = `button-${buttonNum}`;
+            
+            // Check cooldown to prevent too rapid clicking
+            if (isButtonOnCooldown(buttonId)) {
+                return;
             }
+            
+            // Set cooldown and visual feedback
+            setButtonCooldown(buttonId);
+            
+            // Find button element for visual feedback
+            const buttonElement = document.querySelector(`.keyboard-button[onclick*="pressButton(${buttonNum})"]`);
+            flashButton(buttonElement);
+            
+            // Queue the request
+            queueRequest('press_button', '/press_button', { button: buttonNum });
         }
 
         async function acceptWord(word = null) {
-            try {
-                const result = await makeRequest('/accept_word', { word: word });
-                updateUI(result);
-            } catch (error) {
-                console.error('Error accepting word:', error);
+            if (isButtonOnCooldown('accept-word')) {
+                return;
             }
+            
+            setButtonCooldown('accept-word');
+            queueRequest('accept_word', '/accept_word', { word: word });
         }
 
         async function backspace() {
-            try {
-                const result = await makeRequest('/backspace', {});
-                updateUI(result);
-            } catch (error) {
-                console.error('Error with backspace:', error);
+            if (isButtonOnCooldown('backspace')) {
+                return;
             }
+            
+            setButtonCooldown('backspace');
+            
+            const buttonElement = document.querySelector('.control-button.backspace');
+            flashButton(buttonElement);
+            
+            queueRequest('backspace', '/backspace', {});
         }
 
         async function newWord() {
-            try {
-                const result = await makeRequest('/new_word', {});
-                updateUI(result);
-            } catch (error) {
-                console.error('Error starting new word:', error);
+            if (isButtonOnCooldown('new-word')) {
+                return;
             }
+            
+            setButtonCooldown('new-word');
+            queueRequest('new_word', '/new_word', {});
         }
 
         async function addSpace() {
-            try {
-                const result = await makeRequest('/add_space', {});
-                updateUI(result);
-            } catch (error) {
-                console.error('Error adding space:', error);
+            if (isButtonOnCooldown('add-space')) {
+                return;
             }
+            
+            setButtonCooldown('add-space');
+            
+            const buttonElement = document.querySelector('.control-button.space');
+            flashButton(buttonElement);
+            
+            queueRequest('add_space', '/add_space', {});
         }
 
         async function addNextWord(word) {
-            try {
-                const result = await makeRequest('/add_next_word', { word: word });
-                updateUI(result);
-            } catch (error) {
-                console.error('Error adding next word:', error);
+            if (isButtonOnCooldown('add-next-word')) {
+                return;
             }
+            
+            setButtonCooldown('add-next-word');
+            queueRequest('add_next_word', '/add_next_word', { word: word });
         }
 
         async function clearAll() {
-            try {
-                const result = await makeRequest('/clear_all', {});
-                updateUI(result);
-            } catch (error) {
-                console.error('Error clearing all:', error);
+            if (isButtonOnCooldown('clear-all')) {
+                return;
             }
+            
+            setButtonCooldown('clear-all');
+            
+            const buttonElement = document.querySelector('.control-button.clear');
+            flashButton(buttonElement);
+            
+            queueRequest('clear_all', '/clear_all', {});
         }
 
         // Initialize the application
