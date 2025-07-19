@@ -496,17 +496,20 @@
             }
         }
 
-        async function makeRequest(url, data = null) {
+        async function makeRequest(url, data = {}) {
             try {
                 const options = {
-                    method: data ? 'POST' : 'GET',
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    }
+                    },
+                    body: JSON.stringify(data)
                 };
                 
-                if (data) {
-                    options.body = JSON.stringify(data);
+                // Special case for GET requests
+                if (url === '/get_state') {
+                    options.method = 'GET';
+                    delete options.body;
                 }
                 
                 const response = await fetch(url, options);
@@ -534,7 +537,7 @@
 
         async function acceptWord(word = null) {
             try {
-                const result = await makeRequest('/accept_word', { word: word });
+                const result = await makeRequest('/accept_word', { word: word || currentState.current_word });
                 updateUI(result);
             } catch (error) {
                 console.error('Error accepting word:', error);
@@ -543,7 +546,7 @@
 
         async function backspace() {
             try {
-                const result = await makeRequest('/backspace');
+                const result = await makeRequest('/backspace', {});
                 updateUI(result);
             } catch (error) {
                 console.error('Error with backspace:', error);
@@ -552,7 +555,7 @@
 
         async function newWord() {
             try {
-                const result = await makeRequest('/new_word');
+                const result = await makeRequest('/new_word', {});
                 updateUI(result);
             } catch (error) {
                 console.error('Error starting new word:', error);
@@ -561,7 +564,7 @@
 
         async function addSpace() {
             try {
-                const result = await makeRequest('/add_space');
+                const result = await makeRequest('/add_space', {});
                 updateUI(result);
             } catch (error) {
                 console.error('Error adding space:', error);
@@ -570,7 +573,7 @@
 
         async function clearAll() {
             try {
-                const result = await makeRequest('/clear_all');
+                const result = await makeRequest('/clear_all', {});
                 updateUI(result);
             } catch (error) {
                 console.error('Error clearing all:', error);
