@@ -28,11 +28,11 @@ The architecture is designed for simplicity and real-time interaction, with stat
 ### Backend (keyboard_predictor.py)
 - **KeyboardPredictor Class**: Core logic for converting button sequences to word predictions
 - **OpenAI Integration**: Uses GPT-4o model to predict words based on button patterns
-- **Alphabet Grouping**: Maps 4 buttons to letter groups:
-  - Button 1: A-G (ABCDEFG)
-  - Button 2: H-M (HIJKLM)
-  - Button 3: N-S (NOPQRS)
-  - Button 4: T-Z (TUVWXYZ)
+- **Frequency-Based Alphabet Grouping**: Maps 4 buttons to letter groups based on English letter frequency:
+  - Button 1: ETAOINH (most frequent letters - 62% corpus coverage)
+  - Button 2: SRDLCUG (second most frequent - 24% corpus coverage)
+  - Button 3: MPFYWB (third most frequent - 11% corpus coverage)
+  - Button 4: VKXQJZ (least frequent - 3% corpus coverage)
 
 ## Data Flow
 
@@ -87,5 +87,11 @@ The application is designed for simple deployment:
 - **Multiple Predictions**: Enhanced AI to show 3 top word predictions instead of 1
 - **Context-Aware Predictions**: Updated AI to consider previously typed text for better word suggestions
 - **Interactive UI**: Made predictions clickable with color-coded options and hover effects
+- **Frequency-Based Grouping**: Updated letter distribution to use English frequency analysis
+  - Button 1: ETAOINH (62% coverage) - most common letters
+  - Button 2: SRDLCUG (24% coverage) - second tier frequency
+  - Button 3: MPFYWB (11% coverage) - third tier frequency  
+  - Button 4: VKXQJZ (3% coverage) - least common letters
+- **Name Recognition**: Added support for proper names like JACOB, MARIA in predictions
 
 The system prioritizes simplicity and real-time interaction over complex data persistence or multi-user management, making it suitable for single-user or demonstration environments.
