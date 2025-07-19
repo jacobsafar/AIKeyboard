@@ -650,6 +650,9 @@
                 sequenceEl.textContent = 'Sequence: ' + pendingButtonSequence.join(' → ') + ' (typing...)';
                 sequenceEl.style.color = '#6c757d';
                 sequenceEl.style.fontStyle = 'italic';
+            } else {
+                sequenceEl.textContent = '';
+                sequenceEl.style.fontStyle = 'normal';
             }
         }
 
@@ -791,15 +794,31 @@
         async function backspace() {
             console.log('Backspace function called');
             
-            // Clear any pending button sequence since backspace overrides it
-            clearPendingSequence();
-            
             const buttonElement = document.querySelector('.control-button.backspace');
             if (buttonElement) {
                 flashButton(buttonElement);
             } else {
                 console.error('Backspace button element not found');
             }
+            
+            // Handle pending sequence locally first for immediate feedback
+            if (pendingButtonSequence.length > 0) {
+                // Remove last button from pending sequence
+                pendingButtonSequence.pop();
+                updateCurrentSequenceDisplay();
+                
+                // If sequence is now empty, clear the timer
+                if (pendingButtonSequence.length === 0) {
+                    clearPendingSequence();
+                    // Clear the sequence display
+                    const sequenceEl = document.getElementById('sequence');
+                    sequenceEl.textContent = '';
+                }
+                return; // Don't make API call if we're just removing pending buttons
+            }
+            
+            // Clear any remaining pending sequence and make API call for server state
+            clearPendingSequence();
             
             // Make backspace instant - bypass queue and cooldown
             try {
