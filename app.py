@@ -72,7 +72,7 @@ def press_button():
             
         button_num = data.get('button')
         
-        if button_num not in [1, 2, 3, 4]:
+        if button_num not in [1, 2, 3, 4, 5, 6]:
             return jsonify({'error': 'Invalid button number'}), 400
         
         # Add button to sequence

@@ -122,106 +122,72 @@
         }
         
         .keyboard {
-            position: relative;
-            width: 300px;
-            height: 300px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            max-width: 800px;
             margin: 30px auto;
+            padding: 20px;
             background: #2a2a2a;
             border-radius: 20px;
-            padding: 10px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
         
-        .keyboard-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            border-radius: 15px;
-            overflow: hidden;
-        }
-        
         .keyboard-button {
-            position: absolute;
-            background: #d4d4d4;
-            border: none;
+            background: linear-gradient(135deg, #e0e0e0, #c0c0c0);
+            border: 2px solid #bbb;
+            border-radius: 15px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            padding: 20px 10px;
+            min-height: 100px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
         .keyboard-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
             filter: brightness(1.1);
-            z-index: 10;
         }
         
         .keyboard-button:active {
-            transform: scale(0.98);
+            transform: translateY(0px);
             filter: brightness(0.95);
         }
         
-        /* Triangle buttons using clip-path */
-        .keyboard-button.up {
-            width: 100%;
-            height: 100%;
-            clip-path: polygon(50% 50%, 0 0, 100% 0);
-            background: linear-gradient(135deg, #e0e0e0, #c0c0c0);
+        /* Different colors for each button */
+        .keyboard-button.btn1 {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            border-color: #f44336;
         }
         
-        .keyboard-button.right {
-            width: 100%;
-            height: 100%;
-            clip-path: polygon(50% 50%, 100% 0, 100% 100%);
-            background: linear-gradient(225deg, #e0e0e0, #c0c0c0);
+        .keyboard-button.btn2 {
+            background: linear-gradient(135deg, #4ecdc4, #26a69a);
+            border-color: #009688;
         }
         
-        .keyboard-button.down {
-            width: 100%;
-            height: 100%;
-            clip-path: polygon(50% 50%, 100% 100%, 0 100%);
-            background: linear-gradient(315deg, #e0e0e0, #c0c0c0);
+        .keyboard-button.btn3 {
+            background: linear-gradient(135deg, #45b7d1, #2196f3);
+            border-color: #1976d2;
         }
         
-        .keyboard-button.left {
-            width: 100%;
-            height: 100%;
-            clip-path: polygon(50% 50%, 0 100%, 0 0);
-            background: linear-gradient(45deg, #e0e0e0, #c0c0c0);
-            border: 3px solid #ff6b35;
-            box-sizing: border-box;
+        .keyboard-button.btn4 {
+            background: linear-gradient(135deg, #f9ca24, #f39c12);
+            border-color: #e67e22;
         }
         
-        /* Content positioning for each triangle - truly centered */
-        .keyboard-button.up .button-content {
-            transform: translateY(-60px);
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -60px);
+        .keyboard-button.btn5 {
+            background: linear-gradient(135deg, #6c5ce7, #5b4cdb);
+            border-color: #4834d4;
         }
         
-        .keyboard-button.right .button-content {
-            position: absolute;
-            top: 50%;
-            left: 60%;
-            transform: translate(20px, -50%);
-        }
-        
-        .keyboard-button.down .button-content {
-            position: absolute;
-            top: 60%;
-            left: 50%;
-            transform: translate(-50%, 20px);
-        }
-        
-        .keyboard-button.left .button-content {
-            position: absolute;
-            top: 50%;
-            left: 30%;
-            transform: translate(-50%, -50%);
+        .keyboard-button.btn6 {
+            background: linear-gradient(135deg, #a55eea, #8854d0);
+            border-color: #7b68ee;
         }
         
         .button-content {
@@ -230,36 +196,32 @@
         }
         
         .button-number {
-            font-size: 28px;
-            margin-bottom: 5px;
+            font-size: 24px;
+            margin-bottom: 8px;
             font-weight: 800;
-            color: #333;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         
         .button-letters {
-            font-size: 11px;
-            opacity: 0.8;
+            font-size: 12px;
             margin-top: 5px;
-            line-height: 1.2;
+            line-height: 1.3;
             text-align: center;
-            color: #555;
+            color: white;
             font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         
-        /* Add a center decoration */
-        .keyboard-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
-            background: #2a2a2a;
-            border-radius: 50%;
-            z-index: 20;
-            pointer-events: none;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        .button-key {
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+            text-shadow: none;
         }
         
         .controls {
@@ -431,8 +393,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 AI Arrow Key Keyboard</h1>
-            <p>Type using arrow keys with AI-powered word prediction!</p>
+            <h1>🤖 AI 6-Button Keyboard</h1>
+            <p>Type using 6 horizontal buttons with AI-powered word prediction!</p>
         </div>
         
         <div id="error-message" class="error" style="display: none;"></div>
@@ -457,33 +419,48 @@
         </div>
         
         <div class="keyboard">
-            <div class="keyboard-inner">
-                <button class="keyboard-button up" onclick="pressButton(1)" title="↑ Arrow Key - Button 1">
-                    <div class="button-content">
-                        <div class="button-number">1</div>
-                        <div class="button-letters">ETAOINH<br>(62%)</div>
-                    </div>
-                </button>
-                <button class="keyboard-button left" onclick="pressButton(3)" title="← Arrow Key - Button 3">
-                    <div class="button-content">
-                        <div class="button-number">3</div>
-                        <div class="button-letters">MPFYWB<br>(11%)</div>
-                    </div>
-                </button>
-                <button class="keyboard-button right" onclick="pressButton(4)" title="→ Arrow Key - Button 4">
-                    <div class="button-content">
-                        <div class="button-number">4</div>
-                        <div class="button-letters">VKXQJZ<br>(3%)</div>
-                    </div>
-                </button>
-                <button class="keyboard-button down" onclick="pressButton(2)" title="↓ Arrow Key - Button 2">
-                    <div class="button-content">
-                        <div class="button-number">2</div>
-                        <div class="button-letters">SRDLCUG<br>(24%)</div>
-                    </div>
-                </button>
-                <div class="keyboard-center"></div>
-            </div>
+            <button class="keyboard-button btn1" onclick="pressButton(1)" title="S Key - Button 1">
+                <div class="button-content">
+                    <div class="button-number">1</div>
+                    <div class="button-letters">E L</div>
+                    <div class="button-key">S</div>
+                </div>
+            </button>
+            <button class="keyboard-button btn2" onclick="pressButton(2)" title="D Key - Button 2">
+                <div class="button-content">
+                    <div class="button-number">2</div>
+                    <div class="button-letters">T R C Q</div>
+                    <div class="button-key">D</div>
+                </div>
+            </button>
+            <button class="keyboard-button btn3" onclick="pressButton(3)" title="F Key - Button 3">
+                <div class="button-content">
+                    <div class="button-number">3</div>
+                    <div class="button-letters">A D F V</div>
+                    <div class="button-key">F</div>
+                </div>
+            </button>
+            <button class="keyboard-button btn4" onclick="pressButton(4)" title="J Key - Button 4">
+                <div class="button-content">
+                    <div class="button-number">4</div>
+                    <div class="button-letters">O H W Z</div>
+                    <div class="button-key">J</div>
+                </div>
+            </button>
+            <button class="keyboard-button btn5" onclick="pressButton(5)" title="K Key - Button 5">
+                <div class="button-content">
+                    <div class="button-number">5</div>
+                    <div class="button-letters">I S K G</div>
+                    <div class="button-key">K</div>
+                </div>
+            </button>
+            <button class="keyboard-button btn6" onclick="pressButton(6)" title="L Key - Button 6">
+                <div class="button-content">
+                    <div class="button-number">6</div>
+                    <div class="button-letters">N U M P Y B J X</div>
+                    <div class="button-key">L</div>
+                </div>
+            </button>
         </div>
         
         <div class="controls">
@@ -516,17 +493,19 @@
         
         <div class="instructions">
             <h3>ℹ️ How to Use</h3>
-            <p><strong>Arrow Key Mapping:</strong></p>
+            <p><strong>Key Mapping:</strong></p>
             <ul>
-                <li><strong>↑ (Up Arrow/Button 1):</strong> ETAOINH (62%)</li>
-                <li><strong>↓ (Down Arrow/Button 2):</strong> SRDLCUG (24%)</li>
-                <li><strong>← (Left Arrow/Button 3):</strong> MPFYWB (11%)</li>
-                <li><strong>→ (Right Arrow/Button 4):</strong> VKXQJZ (3%)</li>
+                <li><strong>S (Button 1):</strong> E, L</li>
+                <li><strong>D (Button 2):</strong> T, R, C, Q</li>
+                <li><strong>F (Button 3):</strong> A, D, F, V</li>
+                <li><strong>J (Button 4):</strong> O, H, W, Z</li>
+                <li><strong>K (Button 5):</strong> I, S, K, G</li>
+                <li><strong>L (Button 6):</strong> N, U, M, P, Y, B, J, X</li>
             </ul>
             <p><strong>Instructions:</strong></p>
             <ul>
-                <li>Use arrow keys or click triangular buttons to spell words</li>
-                <li>Watch the AI predict your intended word</li>
+                <li>Use S, D, F, J, K, L keys or click the horizontal buttons to spell words</li>
+                <li>Watch the AI predict your intended word as you type</li>
                 <li>Press Enter or click "Accept Word" when prediction is correct</li>
                 <li>Use Backspace to remove the last button press</li>
                 <li>Use alternative suggestions if the main prediction is wrong</li>
@@ -534,7 +513,7 @@
             </ul>
             <p><strong>Example:</strong> To type "HELLO"</p>
             <ul>
-                <li>Press ↓ (H), ↑ (E), ↓ (L), ↓ (L), ← (O)</li>
+                <li>Press J (H), S (E), L (L), L (L), J (O)</li>
                 <li>The AI should predict "HELLO"</li>
                 <li>Press Enter or click "Accept Word" to add it to your text</li>
             </ul>
@@ -839,28 +818,38 @@
             }
         }
 
-        // Add keyboard shortcuts
+        // Add keyboard shortcuts for S D F J K L keys
         document.addEventListener('keydown', function(event) {
-            switch(event.key) {
+            switch(event.key.toLowerCase()) {
                 case '1':
-                case 'ArrowUp':
+                case 's':
                     event.preventDefault();
                     pressButton(1);
                     break;
                 case '2':
-                case 'ArrowDown':
+                case 'd':
                     event.preventDefault();
                     pressButton(2);
                     break;
                 case '3':
-                case 'ArrowLeft':
+                case 'f':
                     event.preventDefault();
                     pressButton(3);
                     break;
                 case '4':
-                case 'ArrowRight':
+                case 'j':
                     event.preventDefault();
                     pressButton(4);
+                    break;
+                case '5':
+                case 'k':
+                    event.preventDefault();
+                    pressButton(5);
+                    break;
+                case '6':
+                case 'l':
+                    event.preventDefault();
+                    pressButton(6);
                     break;
                 case 'Enter':
                     acceptWord();
