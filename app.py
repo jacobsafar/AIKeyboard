@@ -34,6 +34,22 @@ def index():
 def press_button():
     """Handle button press and return AI prediction"""
     try:
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+        
         data = request.get_json()
         button_num = data.get('button')
         
@@ -79,6 +95,22 @@ def press_button():
 def accept_word():
     """Accept the current predicted word"""
     try:
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+            
         data = request.get_json()
         word = data.get('word', session.get('current_word', ''))
         
@@ -114,6 +146,22 @@ def accept_word():
 def backspace():
     """Remove last button press"""
     try:
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+            
         if session['button_sequence']:
             session['button_sequence'].pop()
             
@@ -149,6 +197,22 @@ def backspace():
 def new_word():
     """Start a new word (clear current sequence)"""
     try:
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+            
         session['button_sequence'] = []
         session['current_word'] = ""
         session['predicted_words'] = []
@@ -176,6 +240,22 @@ def new_word():
 def add_space():
     """Add a space to the typed text"""
     try:
+        # Initialize session variables if not present
+        if 'button_sequence' not in session:
+            session['button_sequence'] = []
+        if 'current_word' not in session:
+            session['current_word'] = ""
+        if 'predicted_words' not in session:
+            session['predicted_words'] = []
+        if 'next_word_predictions' not in session:
+            session['next_word_predictions'] = []
+        if 'typed_text' not in session:
+            session['typed_text'] = ""
+        if 'start_time' not in session:
+            session['start_time'] = time.time()
+        if 'word_count' not in session:
+            session['word_count'] = 0
+            
         # Add space to typed text if there's already text
         if session['typed_text']:
             session['typed_text'] += " "
@@ -208,6 +288,7 @@ def add_space():
 def clear_all():
     """Clear everything and start over"""
     try:
+        # Initialize and clear all session variables
         session['button_sequence'] = []
         session['current_word'] = ""
         session['predicted_words'] = []
