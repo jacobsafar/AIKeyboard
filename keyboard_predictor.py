@@ -1,6 +1,8 @@
 import os
 import json
+import re
 from openai import OpenAI
+from names_database import get_names_for_sequence
 
 # Few-shot examples for the LLM
 EXAMPLES = """
@@ -43,6 +45,13 @@ class KeyboardPredictor:
             6: "NUMPYBJX",
         }
 
+    def _context_suggests_name(self, context_text: str) -> bool:
+        """Return True if the context likely indicates a name will follow."""
+        text = context_text.lower().strip()
+        text = re.sub(r"[.!?,]*$", "", text)
+        endings = ["my name is", "name is", "i am", "i'm"]
+        return any(text.endswith(e) for e in endings)
+
     def predict_word(self, button_sequence, context_text=""):
         """
         Predict a word based on button sequence and context using OpenAI API.
@@ -65,6 +74,13 @@ class KeyboardPredictor:
 
             # Validate each candidate
             valid = [w for w in all_raw if self._validate_word_sequence(w, button_sequence)]
+
+            if self._context_suggests_name(context_text):
+                name_candidates = [n.upper() for n in get_names_for_sequence(button_sequence, self.groups)]
+                name_candidates = [n for n in name_candidates if self._validate_word_sequence(n, button_sequence)]
+                if name_candidates:
+                    valid = list(dict.fromkeys(name_candidates + valid))
+
             if valid:
                 return {
                     "top_predictions": valid[:3],
@@ -82,6 +98,17 @@ class KeyboardPredictor:
 
         # If still no valid output, return the raw predictions with low confidence
         # This allows user to see what the AI predicted even if validation failed
+        if self._context_suggests_name(context_text):
+            name_candidates = [n.upper() for n in get_names_for_sequence(button_sequence, self.groups)]
+            name_candidates = [n for n in name_candidates if self._validate_word_sequence(n, button_sequence)]
+            if name_candidates:
+                return {
+                    "top_predictions": name_candidates[:3],
+                    "alternative_words": name_candidates[3:8],
+                    "confidence": 0.1,
+                    "validation_failed": True,
+                }
+
         return {
             "top_predictions": raw_top[:3] if raw_top else [],
             "alternative_words": raw_alt[:5] if raw_alt else [],
