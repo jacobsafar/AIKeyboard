@@ -826,6 +826,16 @@
 
         // Add keyboard shortcuts for S D F J K L keys
         document.addEventListener('keydown', function(event) {
+            console.log('Key pressed:', event.key, 'Code:', event.code, 'KeyCode:', event.keyCode);
+            
+            // Handle Delete key by keyCode as well (keyCode 46)
+            if (event.keyCode === 46 || event.code === 'Delete') {
+                console.log('Delete key detected by keyCode/code');
+                event.preventDefault();
+                backspace();
+                return;
+            }
+            
             switch(event.key.toLowerCase()) {
                 case '1':
                 case 's':
@@ -866,6 +876,7 @@
                     backspace();
                     break;
                 case 'Delete':
+                case 'del':
                     console.log('Delete key pressed');
                     event.preventDefault();
                     backspace();
