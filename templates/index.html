@@ -547,6 +547,11 @@
         let buttonCooldowns = new Map();
         const BUTTON_COOLDOWN = 50; // 50ms cooldown per button
 
+        // Debounce handling for button presses
+        let pendingButtons = [];
+        let pressDebounceTimer = null;
+        const PRESS_DEBOUNCE = 200; // wait before sending presses
+
         // Queue processing system for handling rapid requests
         async function processRequestQueue() {
             if (isProcessing || requestQueue.length === 0) {
@@ -616,6 +621,19 @@
 
         function setButtonCooldown(buttonId) {
             buttonCooldowns.set(buttonId, Date.now());
+        }
+
+        function flushPendingButtons() {
+            if (pressDebounceTimer) {
+                clearTimeout(pressDebounceTimer);
+                pressDebounceTimer = null;
+            }
+            if (pendingButtons.length > 0) {
+                pendingButtons.forEach(btn => {
+                    queueRequest('press_button', '/press_button', { button: btn });
+                });
+                pendingButtons = [];
+            }
         }
 
         // Visual feedback for button presses
@@ -729,19 +747,24 @@
         }
 
         async function pressButton(buttonNum) {
-            // Find button element for visual feedback
             const buttonElement = document.querySelector(`.keyboard-button[onclick*="pressButton(${buttonNum})"]`);
             flashButton(buttonElement);
-            
-            // Queue the request immediately - no cooldown for button presses
-            queueRequest('press_button', '/press_button', { button: buttonNum });
+
+            pendingButtons.push(buttonNum);
+            if (pressDebounceTimer) {
+                clearTimeout(pressDebounceTimer);
+            }
+            pressDebounceTimer = setTimeout(() => {
+                flushPendingButtons();
+            }, PRESS_DEBOUNCE);
         }
 
         async function acceptWord(word = null) {
             if (isButtonOnCooldown('accept-word')) {
                 return;
             }
-            
+
+            flushPendingButtons();
             setButtonCooldown('accept-word');
             queueRequest('accept_word', '/accept_word', { word: word });
         }
@@ -759,17 +782,18 @@
                 console.error('Backspace button element not found');
             }
             
-            // Make backspace instant - bypass queue and cooldown
-            try {
-                console.log('Making backspace request...');
-                const result = await makeRequest('/backspace', {});
-                console.log('Backspace result:', result);
-                console.log('Button sequence after backspace:', result.button_sequence);
-                updateUI(result);
-                console.log('UI updated after backspace');
-            } catch (error) {
-                console.error('Error processing backspace:', error);
-                showError(`Error: ${error.message}`);
+            if (pendingButtons.length > 0) {
+                // Remove the most recent unsent button
+                pendingButtons.pop();
+            } else {
+                flushPendingButtons();
+                try {
+                    const result = await makeRequest('/backspace', {});
+                    updateUI(result);
+                } catch (error) {
+                    console.error('Error processing backspace:', error);
+                    showError(`Error: ${error.message}`);
+                }
             }
         }
 
@@ -777,7 +801,8 @@
             if (isButtonOnCooldown('new-word')) {
                 return;
             }
-            
+
+            flushPendingButtons();
             setButtonCooldown('new-word');
             queueRequest('new_word', '/new_word', {});
         }
@@ -786,9 +811,10 @@
             if (isButtonOnCooldown('add-space')) {
                 return;
             }
-            
+
+            flushPendingButtons();
             setButtonCooldown('add-space');
-            
+
             const buttonElement = document.querySelector('.control-button.space');
             flashButton(buttonElement);
             
@@ -799,7 +825,8 @@
             if (isButtonOnCooldown('add-next-word')) {
                 return;
             }
-            
+
+            flushPendingButtons();
             setButtonCooldown('add-next-word');
             queueRequest('add_next_word', '/add_next_word', { word: word });
         }
@@ -808,9 +835,10 @@
             if (isButtonOnCooldown('clear-all')) {
                 return;
             }
-            
+
+            flushPendingButtons();
             setButtonCooldown('clear-all');
-            
+
             const buttonElement = document.querySelector('.control-button.clear');
             flashButton(buttonElement);
             
