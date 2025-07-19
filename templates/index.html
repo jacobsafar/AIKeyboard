@@ -125,10 +125,10 @@
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             grid-template-rows: 1fr 1fr 1fr;
-            gap: 20px;
+            gap: 30px;
             margin-bottom: 30px;
-            max-width: 300px;
-            max-height: 300px;
+            max-width: 400px;
+            max-height: 400px;
             margin-left: auto;
             margin-right: auto;
             position: relative;
@@ -138,43 +138,43 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px;
-            font-size: 16px;
+            padding: 20px;
+            font-size: 12px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            border-radius: 15px;
         }
         
         .keyboard-button.up {
             grid-column: 2;
             grid-row: 1;
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            clip-path: polygon(20% 80%, 80% 80%, 50% 20%);
         }
         
         .keyboard-button.down {
             grid-column: 2;
             grid-row: 3;
-            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+            clip-path: polygon(50% 80%, 20% 20%, 80% 20%);
         }
         
         .keyboard-button.left {
             grid-column: 1;
             grid-row: 2;
-            clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
+            clip-path: polygon(20% 50%, 80% 20%, 80% 80%);
         }
         
         .keyboard-button.right {
             grid-column: 3;
             grid-row: 2;
-            clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+            clip-path: polygon(80% 50%, 20% 20%, 20% 80%);
         }
         
         .keyboard-button:hover {
@@ -194,9 +194,11 @@
         }
         
         .button-letters {
-            font-size: 20px;
+            font-size: 10px;
             opacity: 0.9;
             margin-top: 5px;
+            line-height: 1.2;
+            text-align: center;
         }
         
         .controls {
@@ -394,21 +396,21 @@
         </div>
         
         <div class="keyboard">
-            <button class="keyboard-button up" onclick="pressButton(1)" title="↑ Arrow Key">
+            <button class="keyboard-button up" onclick="pressButton(1)" title="↑ Arrow Key - Button 1">
                 <div class="button-number">1</div>
-                <div class="button-letters">↑</div>
+                <div class="button-letters">ETAOINH<br>(62%)</div>
             </button>
-            <button class="keyboard-button left" onclick="pressButton(3)" title="← Arrow Key">
+            <button class="keyboard-button left" onclick="pressButton(3)" title="← Arrow Key - Button 3">
                 <div class="button-number">3</div>
-                <div class="button-letters">←</div>
+                <div class="button-letters">MPFYWB<br>(11%)</div>
             </button>
-            <button class="keyboard-button right" onclick="pressButton(4)" title="→ Arrow Key">
+            <button class="keyboard-button right" onclick="pressButton(4)" title="→ Arrow Key - Button 4">
                 <div class="button-number">4</div>
-                <div class="button-letters">→</div>
+                <div class="button-letters">VKXQJZ<br>(3%)</div>
             </button>
-            <button class="keyboard-button down" onclick="pressButton(2)" title="↓ Arrow Key">
+            <button class="keyboard-button down" onclick="pressButton(2)" title="↓ Arrow Key - Button 2">
                 <div class="button-number">2</div>
-                <div class="button-letters">↓</div>
+                <div class="button-letters">SRDLCUG<br>(24%)</div>
             </button>
         </div>
         
