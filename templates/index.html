@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 4-Button Keyboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f6;
+            color: #262730;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #262730;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #6c757d;
+            font-size: 18px;
+        }
+        
+        .predictions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .prediction-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .prediction-card h3 {
+            margin: 0 0 15px 0;
+            color: #262730;
+            font-size: 18px;
+        }
+        
+        .current-word {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin: 10px 0;
+            min-height: 50px;
+        }
+        
+        .sequence {
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        
+        .next-words {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .next-words li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-weight: 500;
+            color: #4ecdc4;
+        }
+        
+        .next-words li:last-child {
+            border-bottom: none;
+        }
+        
+        .typed-text-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .typed-text {
+            font-size: 20px;
+            line-height: 1.5;
+            min-height: 30px;
+            color: #262730;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .keyboard-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .keyboard-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .keyboard-button:active {
+            transform: translateY(0);
+        }
+        
+        .button-number {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .button-letters {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .control-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-button:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+        
+        .control-button.accept {
+            background: #28a745;
+        }
+        
+        .control-button.accept:hover {
+            background: #218838;
+        }
+        
+        .control-button.backspace {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .control-button.backspace:hover {
+            background: #e0a800;
+        }
+        
+        .control-button.clear {
+            background: #dc3545;
+        }
+        
+        .control-button.clear:hover {
+            background: #c82333;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4ecdc4;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .alternatives {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .alternatives h3 {
+            margin: 0 0 15px 0;
+            color: #262730;
+        }
+        
+        .alternative-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .alternative-button {
+            background: #e9ecef;
+            color: #495057;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .alternative-button:hover {
+            background: #4ecdc4;
+            color: white;
+        }
+        
+        .instructions {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .instructions h3 {
+            margin: 0 0 15px 0;
+            color: #262730;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            color: #6c757d;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .predictions {
+                grid-template-columns: 1fr;
+            }
+            
+            .keyboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI-Powered 4-Button Keyboard</h1>
+            <p>Type using only 4 buttons with AI-powered word prediction!</p>
+        </div>
+        
+        <div id="error-message" class="error" style="display: none;"></div>
+        
+        <div class="predictions">
+            <div class="prediction-card">
+                <h3>🎯 Current Word Prediction</h3>
+                <div id="current-word" class="current-word">Start typing...</div>
+                <div id="sequence" class="sequence"></div>
+            </div>
+            <div class="prediction-card">
+                <h3>💡 Next Word Suggestions</h3>
+                <ul id="next-words" class="next-words">
+                    <li>No suggestions yet</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="typed-text-section">
+            <h3>📝 Typed Text</h3>
+            <div id="typed-text" class="typed-text">Your text will appear here...</div>
+        </div>
+        
+        <div class="keyboard">
+            <button class="keyboard-button" onclick="pressButton(1)">
+                <div class="button-number">1</div>
+                <div class="button-letters">A-G (ABCDEFG)</div>
+            </button>
+            <button class="keyboard-button" onclick="pressButton(2)">
+                <div class="button-number">2</div>
+                <div class="button-letters">H-M (HIJKLM)</div>
+            </button>
+            <button class="keyboard-button" onclick="pressButton(3)">
+                <div class="button-number">3</div>
+                <div class="button-letters">N-S (NOPQRS)</div>
+            </button>
+            <button class="keyboard-button" onclick="pressButton(4)">
+                <div class="button-number">4</div>
+                <div class="button-letters">T-Z (TUVWXYZ)</div>
+            </button>
+        </div>
+        
+        <div class="controls">
+            <button class="control-button accept" onclick="acceptWord()">✅ Accept Word</button>
+            <button class="control-button backspace" onclick="backspace()">⬅️ Backspace</button>
+            <button class="control-button" onclick="newWord()">🔄 New Word</button>
+            <button class="control-button clear" onclick="clearAll()">🗑️ Clear All</button>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric-card">
+                <div id="word-count" class="metric-value">0</div>
+                <div class="metric-label">Words Typed</div>
+            </div>
+            <div class="metric-card">
+                <div id="elapsed-time" class="metric-value">0.0</div>
+                <div class="metric-label">Time (seconds)</div>
+            </div>
+            <div class="metric-card">
+                <div id="wpm" class="metric-value">0.0</div>
+                <div class="metric-label">Words Per Minute</div>
+            </div>
+        </div>
+        
+        <div id="alternatives" class="alternatives" style="display: none;">
+            <h3>🔀 Alternative Suggestions</h3>
+            <div id="alternative-buttons" class="alternative-buttons"></div>
+        </div>
+        
+        <div class="instructions">
+            <h3>ℹ️ How to Use</h3>
+            <p><strong>Alphabet Groups:</strong></p>
+            <ul>
+                <li><strong>Button 1:</strong> A, B, C, D, E, F, G</li>
+                <li><strong>Button 2:</strong> H, I, J, K, L, M</li>
+                <li><strong>Button 3:</strong> N, O, P, Q, R, S</li>
+                <li><strong>Button 4:</strong> T, U, V, W, X, Y, Z</li>
+            </ul>
+            <p><strong>Instructions:</strong></p>
+            <ul>
+                <li>Press buttons in sequence to spell words</li>
+                <li>Watch the AI predict your intended word</li>
+                <li>Click "Accept Word" when the prediction is correct</li>
+                <li>Use "Backspace" to remove the last button press</li>
+                <li>Use alternative suggestions if the main prediction is wrong</li>
+                <li>The AI will suggest next words to help you type faster</li>
+            </ul>
+            <p><strong>Example:</strong> To type "HELLO"</p>
+            <ul>
+                <li>Press 2 (H), 1 (E), 2 (L), 2 (L), 3 (O)</li>
+                <li>The AI should predict "HELLO"</li>
+                <li>Click "Accept Word" to add it to your text</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentState = {
+            current_word: '',
+            alternative_words: [],
+            next_word_predictions: [],
+            button_sequence: [],
+            typed_text: '',
+            word_count: 0,
+            elapsed_time: 0,
+            wpm: 0
+        };
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateUI(state) {
+            currentState = state;
+            
+            // Update current word
+            const currentWordEl = document.getElementById('current-word');
+            currentWordEl.textContent = state.current_word || 'Start typing...';
+            
+            // Update sequence
+            const sequenceEl = document.getElementById('sequence');
+            if (state.button_sequence && state.button_sequence.length > 0) {
+                sequenceEl.textContent = 'Sequence: ' + state.button_sequence.join(' → ');
+            } else {
+                sequenceEl.textContent = '';
+            }
+            
+            // Update next words
+            const nextWordsEl = document.getElementById('next-words');
+            nextWordsEl.innerHTML = '';
+            if (state.next_word_predictions && state.next_word_predictions.length > 0) {
+                state.next_word_predictions.slice(0, 3).forEach((word, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${index + 1}. ${word}`;
+                    nextWordsEl.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = 'No suggestions yet';
+                nextWordsEl.appendChild(li);
+            }
+            
+            // Update typed text
+            const typedTextEl = document.getElementById('typed-text');
+            typedTextEl.textContent = state.typed_text || 'Your text will appear here...';
+            
+            // Update metrics
+            document.getElementById('word-count').textContent = state.word_count;
+            document.getElementById('elapsed-time').textContent = state.elapsed_time;
+            document.getElementById('wpm').textContent = state.wpm;
+            
+            // Update alternatives
+            const alternativesEl = document.getElementById('alternatives');
+            const alternativeButtonsEl = document.getElementById('alternative-buttons');
+            alternativeButtonsEl.innerHTML = '';
+            
+            if (state.alternative_words && state.alternative_words.length > 0) {
+                alternativesEl.style.display = 'block';
+                state.alternative_words.slice(0, 5).forEach(word => {
+                    const button = document.createElement('button');
+                    button.className = 'alternative-button';
+                    button.textContent = word;
+                    button.onclick = () => acceptWord(word);
+                    alternativeButtonsEl.appendChild(button);
+                });
+            } else {
+                alternativesEl.style.display = 'none';
+            }
+        }
+
+        async function makeRequest(url, data = null) {
+            try {
+                const options = {
+                    method: data ? 'POST' : 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(url, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'Request failed');
+                }
+                
+                return result;
+            } catch (error) {
+                showError('Error: ' + error.message);
+                throw error;
+            }
+        }
+
+        async function pressButton(buttonNum) {
+            try {
+                const result = await makeRequest('/press_button', { button: buttonNum });
+                updateUI(result);
+            } catch (error) {
+                console.error('Error pressing button:', error);
+            }
+        }
+
+        async function acceptWord(word = null) {
+            try {
+                const result = await makeRequest('/accept_word', { word: word });
+                updateUI(result);
+            } catch (error) {
+                console.error('Error accepting word:', error);
+            }
+        }
+
+        async function backspace() {
+            try {
+                const result = await makeRequest('/backspace');
+                updateUI(result);
+            } catch (error) {
+                console.error('Error with backspace:', error);
+            }
+        }
+
+        async function newWord() {
+            try {
+                const result = await makeRequest('/new_word');
+                updateUI(result);
+            } catch (error) {
+                console.error('Error starting new word:', error);
+            }
+        }
+
+        async function clearAll() {
+            try {
+                const result = await makeRequest('/clear_all');
+                updateUI(result);
+            } catch (error) {
+                console.error('Error clearing all:', error);
+            }
+        }
+
+        // Initialize the application
+        async function init() {
+            try {
+                const result = await makeRequest('/get_state');
+                updateUI(result);
+            } catch (error) {
+                console.error('Error initializing:', error);
+            }
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            switch(event.key) {
+                case '1':
+                    pressButton(1);
+                    break;
+                case '2':
+                    pressButton(2);
+                    break;
+                case '3':
+                    pressButton(3);
+                    break;
+                case '4':
+                    pressButton(4);
+                    break;
+                case 'Enter':
+                    acceptWord();
+                    break;
+                case 'Backspace':
+                    event.preventDefault();
+                    backspace();
+                    break;
+                case 'Escape':
+                    newWord();
+                    break;
+            }
+        });
+
+        // Initialize when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
